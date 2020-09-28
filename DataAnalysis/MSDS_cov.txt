@@ -1,0 +1,187 @@
+    model{
+  
+    #--------#
+    #-PRIORS-#
+    #--------#
+
+    #Gamma0
+    mu_s ~ dunif(0, 8)            #Mean
+    tau_s <- 1/(sig_s * sig_s)    #Precision
+    sig_s ~ dunif(0, 8)           #Variance
+
+    #Sigma
+    gamma1 ~ dnorm(0, 0.1)       #Effect of region
+    
+    #Alpha0
+    mu_a0 ~ dnorm(0, 0.1)        #Mean
+    tau_a0 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a0 <- 1/sqrt(tau_a0)      #Variance
+    #Alpha1
+    mu_a1 ~ dnorm(0, 0.1)        #Mean
+    tau_a1 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a1 <- 1/sqrt(tau_a1)      #Variance
+    #Alpha2
+    mu_a2 ~ dnorm(0, 0.1)        #Mean
+    tau_a2 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a2 <- 1/sqrt(tau_a2)      #Variance    
+    #Alpha3
+    mu_a3 ~ dnorm(0, 0.1)        #Mean
+    tau_a3 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a3 <- 1/sqrt(tau_a3)      #Variance
+    #Alpha4
+    mu_a4 ~ dnorm(0, 0.1)        #Mean
+    tau_a4 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a4 <- 1/sqrt(tau_a4)      #Variance
+    #Alpha5
+    mu_a5 ~ dnorm(0, 0.1)        #Mean
+    tau_a5 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a5 <- 1/sqrt(tau_a5)      #Variance
+    #Alpha6
+    mu_a6 ~ dnorm(0, 0.1)        #Mean
+    tau_a6 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a6 <- 1/sqrt(tau_a6)      #Variance
+    #Alpha7
+    mu_a7 ~ dnorm(0, 0.1)        #Mean
+    tau_a7 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a7 <- 1/sqrt(tau_a7)      #Variance
+    #Alpha8
+    alpha8 ~ dnorm(0, 0.1)
+    #Beta1
+    mu_b1 ~ dnorm(0, 0.1)        #Mean
+    tau_b1 ~ dgamma(0.1, 0.1)     #Precision
+    sig_b1 <- 1/sqrt(tau_b1)      #Variance
+
+    #Overdispersion
+    r.N ~ dunif(0,10)            #Number of groups
+    r.G ~ dunif(0,10)            #Group size
+    
+    for(s in 1:nspec){
+
+    #Psi
+    tau_p[s] ~ dgamma(0.1, 0.1)  #Precision
+    sig_p[s] <- 1/sqrt(tau_p[s]) #Variance
+    
+    #Expected Group Size
+    beta0[s] ~ dunif(0,50)           #Intercept parameter
+    beta1[s] ~ dnorm(mu_b1, tau_b1)  #Effect parameter
+
+    #Sigma
+    gamma0[s] ~ dnorm(mu_s, tau_s)  #Intercept parameter
+    
+    #Expected Number of Groups
+    alpha0[s] ~ dnorm(mu_a0, tau_a0)    #Intercept parameter
+    alpha1[s] ~ dnorm(mu_a1, tau_a1)    #Effect parameter
+    alpha2[s] ~ dnorm(mu_a2, tau_a2)    #Effect parameter
+    alpha3[s] ~ dnorm(mu_a3, tau_a3)    #Effect parameter
+    alpha4[s] ~ dnorm(mu_a4, tau_a4)    #Effect parameter
+    alpha5[s] ~ dnorm(mu_a5, tau_a5)    #Effect parameter
+    alpha6[s] ~ dnorm(mu_a6, tau_a6)    #Effect parameter
+    alpha7[s] ~ dnorm(mu_a7, tau_a7)    #Effect parameter
+
+    for(j in 1:nsites){
+
+    psi[j,s] ~ dnorm(0, tau_p[s])       #Transect effect parameter
+
+    #Scale parameter
+    sigma[j,s] <- exp(gamma0[s] + gamma1 * region[j])
+
+    #------------#
+    #-LIKELIHOOD-#
+    #------------#
+    
+    for(t in 1:nreps[j]){
+    
+    #Construct cell probabilities for nG cells using numerical integration
+    #Sum of the area (rectangles) under the detection function
+
+    for(k in 1:nD){
+    
+    #Half normal detection function at midpt (length of rectangle)
+    g[k,t,j,s] <- exp(-mdpt[k]*mdpt[k]/(2*sigma[j,s]*sigma[j,s]))
+    
+    #Proportion of each interval (width of rectangle) for both sides of the transect
+    pi[k,t,j,s] <- v/B
+    
+    #Detection probability for each distance class k (area of each rectangle)
+    f[k,t,j,s] <- g[k,t,j,s] * pi[k,t,j,s]
+    
+    #Conditional detection probability (scale to 1)
+    fc[k,t,j,s] <- f[k,t,j,s]/pcap[t,j,s]
+    
+    }#end k loop
+    
+    #Detection probability at each transect (sum of rectangles)
+    pcap[t,j,s] <- sum(f[1:nD,t,j,s])
+    
+    #Observed population @ each t,j,s (N-mixture)
+    y[t,j,s] ~ dbin(pcap[t,j,s], N[t,j,s])
+    
+    #Latent Number of Groups @ each t,j,s (negative binomial)
+    N[t,j,s] ~ dpois(lambda.star[t,j,s])
+    
+    #Expected Number of Groups
+    lambda.star[t,j,s] <- rho[t,j,s] * lambda[t,j,s]
+
+    #Overdispersion parameter for Expected Number of Groups
+    rho[t,j,s] ~ dgamma(r.N, r.N)
+
+    #Linear predictor for Expected Number of Groups
+    #lambda[t,j,s] <- exp(alpha0[s] + alpha1[s] * region[j] + psi[j,s] + log(offset[j]))
+    lambda[t,j,s] <- exp(alpha0[s] + 
+                         alpha1[s] * LULC[j,1] 
+                         alpha2[s] * LULC[j,2] 
+                         alpha3[s] * LULC[j,3] 
+                         alpha4[s] * LULC[j,4] 
+                         alpha5[s] * LULC[j,5] 
+                         alpha6[s] * LULC[j,6] 
+                         alpha7[s] * River[j]
+                         alpha8 * Migrant[t,j,s]
+                         psi[j,s] + log(offset[j]))
+    
+    #Expected Group Size
+    gs.lam.star[t,j,s] <- gs.lam[t,j,s] * gs.rho[t,j,s]
+    
+    #Overdispersion parameter for Expected Group Size
+    gs.rho[t,j,s] ~ dgamma(r.G, r.G)
+    
+    #Linear predictor for Expected Group Size
+    gs.lam[t,j,s] <- exp(beta0[s] + beta1[s] * region[j] + log(offset[j])) 
+
+    #Abundance per transect
+    GSrep[t,j,s] <- lambda.star[t,j,s] * gs.lam.star[t,j,s]
+
+    }#end t loop
+
+    #Mean detection probability @ each j,s
+    psite[j,s] <- mean(pcap[1:nreps[j], j, s])
+    
+    #Abundance per transect averaged over surveys
+    GSsite[j,s] <- mean(GSrep[1:nreps[j], j, s])
+
+    }#end j loop
+    
+    #Mean detection probability for each species
+    Dprop[s] <- mean(psite[1:nsites, s])
+    
+    #Mean abundance per transect
+    GS[s] <- mean(GSsite[1:nsites, s])   
+
+    #Abundance per transect for each region
+    RegGS[s,1] <- mean(GSsite[1:13, s])     #Mara Triangle
+    RegGS[s,2] <- mean(GSsite[14:17, s])    #Talek region
+
+    }#end s loop
+
+    #Mean detection probability for all t,j,s
+    TotalDprop <- mean(Dprop[])
+    
+    for(i in 1:nobs){
+    
+    #Observed distance classes
+    dclass[i] ~ dcat(fc[1:nD, rep[i], site[i], spec[i]])
+    
+    gs[i] ~ dpois(gs.lam.star[rep[i], site[i], spec[i]]) T(1,)
+
+    }#end i loop
+    
+    }

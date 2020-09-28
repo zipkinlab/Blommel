@@ -1,0 +1,394 @@
+    model{
+    
+    #-----------------#
+    #-Herbivore Model-#
+    #-----------------#
+    
+    #Gamma0
+    mu_s ~ dunif(0, 8)            #Mean
+    tau_s <- 1/(sig_s * sig_s)    #Precision
+    sig_s ~ dunif(0, 8)           #Variance
+
+    #Sigma
+    gamma1 ~ dnorm(0, 0.1)       #Effect of region
+    
+    #Alpha0
+    mu_a0 ~ dnorm(0, 0.1)        #Mean
+    tau_a0 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a0 <- 1/sqrt(tau_a0)      #Variance
+    #Alpha1
+    mu_a1 ~ dnorm(0, 0.1)        #Mean
+    tau_a1 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a1 <- 1/sqrt(tau_a1)      #Variance
+    #Alpha2
+    mu_a2 ~ dnorm(0, 0.1)        #Mean
+    tau_a2 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a2 <- 1/sqrt(tau_a2)      #Variance    
+    #Alpha3
+    mu_a3 ~ dnorm(0, 0.1)        #Mean
+    tau_a3 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a3 <- 1/sqrt(tau_a3)      #Variance
+    #Alpha4
+    mu_a4 ~ dnorm(0, 0.1)        #Mean
+    tau_a4 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a4 <- 1/sqrt(tau_a4)      #Variance
+    #Alpha5
+    mu_a5 ~ dnorm(0, 0.1)        #Mean
+    tau_a5 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a5 <- 1/sqrt(tau_a5)      #Variance
+    #Alpha6
+    mu_a6 ~ dnorm(0, 0.1)        #Mean
+    tau_a6 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a6 <- 1/sqrt(tau_a6)      #Variance
+    #Alpha7
+    mu_a7 ~ dnorm(0, 0.1)        #Mean
+    tau_a7 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a7 <- 1/sqrt(tau_a7)      #Variance
+    #Alpha8
+    alpha8 ~ dnorm(0, 0.1)
+    #Alpha9
+    mu_a9 ~ dnorm(0, 0.1)        #Mean
+    tau_a9 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a9 <- 1/sqrt(tau_a9)      #Variance
+    #Alpha10
+    mu_a10 ~ dnorm(0, 0.1)        #Mean
+    tau_a10 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a10 <- 1/sqrt(tau_a10)      #Variance
+    #Alpha11
+    mu_a11 ~ dnorm(0, 0.1)        #Mean
+    tau_a11 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a11 <- 1/sqrt(tau_a11)      #Variance
+    #Alpha12
+    mu_a12 ~ dnorm(0, 0.1)        #Mean
+    tau_a12 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a12 <- 1/sqrt(tau_a12)      #Variance
+    #Alpha13
+    mu_a13 ~ dnorm(0, 0.1)        #Mean
+    tau_a13 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a13 <- 1/sqrt(tau_a13)      #Variance
+    #Alpha14
+    mu_a14 ~ dnorm(0, 0.1)        #Mean
+    tau_a14 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a14 <- 1/sqrt(tau_a14)      #Variance
+    #Alpha15
+    mu_a15 ~ dnorm(0, 0.1)        #Mean
+    tau_a15 ~ dgamma(0.1, 0.1)     #Precision
+    sig_a15 <- 1/sqrt(tau_a15)      #Variance
+    #Beta1
+    mu_b1 ~ dnorm(0, 0.1)        #Mean
+    tau_b1 ~ dgamma(0.1, 0.1)     #Precision
+    sig_b1 <- 1/sqrt(tau_b1)      #Variance
+
+    #Overdispersion
+    r.N ~ dunif(0,10)            #Number of groups
+    r.G ~ dunif(0,10)            #Group size
+
+    for(s in 1:nherb){
+    
+    #Psi
+    tau_p[s] ~ dgamma(0.1, 0.1)  #Precision
+    sig_p[s] <- 1/sqrt(tau_p[s]) #Variance
+    
+    #Expected Group Size
+    beta0[s] ~ dunif(0,50)           #Intercept parameter
+    beta1[s] ~ dnorm(mu_b1, tau_b1)  #Effect parameter
+    
+    #Sigma
+    gamma0[s] ~ dnorm(mu_s, tau_s)  #Intercept parameter
+    
+    #Expected Number of Groups
+    alpha0[s] ~ dnorm(mu_a0, tau_a0)    #Intercept parameter
+    alpha1[s] ~ dnorm(mu_a1, tau_a1)    #Effect parameter
+    alpha2[s] ~ dnorm(mu_a2, tau_a2)    #Effect parameter
+    alpha3[s] ~ dnorm(mu_a3, tau_a3)    #Effect parameter
+    alpha4[s] ~ dnorm(mu_a4, tau_a4)    #Effect parameter
+    alpha5[s] ~ dnorm(mu_a5, tau_a5)    #Effect parameter
+    alpha6[s] ~ dnorm(mu_a6, tau_a6)    #Effect parameter
+    alpha7[s] ~ dnorm(mu_a7, tau_a7)    #Effect parameter
+    alpha9[s] ~ dnorm(mu_a9, tau_a9)    #Effect parameter
+    alpha10[s] ~ dnorm(mu_a10, tau_a10) #Effect parameter
+    alpha11[s] ~ dnorm(mu_a11, tau_a11) #Effect parameter
+    alpha12[s] ~ dnorm(mu_a12, tau_a12) #Effect parameter
+    alpha13[s] ~ dnorm(mu_a13, tau_a13) #Effect parameter
+    alpha14[s] ~ dnorm(mu_a14, tau_a14) #Effect parameter
+    alpha15[s] ~ dnorm(mu_a15, tau_a15) #Effect parameter
+    
+    for(j in 1:nsites){
+    
+    psi[j,s] ~ dnorm(0, tau_p[s])       #Transect effect parameter
+
+    #Scale parameter
+    sigma[j,s] <- exp(gamma0[s] + gamma1 * region[j])
+
+    #------------#
+    #-LIKELIHOOD-#
+    #------------#
+    
+    for(t in 1:nreps[j]){
+    
+    #Observed population @ each t,j,s (N-mixture)
+    y[t,j,s] ~ dbin(pcap[t,j,s], N[t,j,s])
+    
+    #Latent Number of Groups @ each t,j,s (negative binomial)
+    N[t,j,s] ~ dpois(lambda.star[t,j,s])
+    
+    #Expected Number of Groups
+    lambda.star[t,j,s] <- rho[t,j] * lambda[t,j,s]
+    
+    #Linear predictor for Expected Number of Groups
+    lambda[t,j,s] <- exp(alpha0[s] + 
+        alpha8 * Migrant[t,j,s] +
+        alpha9[s] * region[j] +
+        alpha10[s] * BBJ[t,j] +
+        alpha11[s] * LION[t,j] +
+        alpha12[s] * HYENA[t,j] +
+        psi[j,s] + log(offset[j]))
+    
+    #Expected Group Size
+    gs.lam.star[t,j,s] <- gs.lam[t,j,s] * gs.rho[t,j]
+    
+    #Linear predictor for Expected Group Size
+    gs.lam[t,j,s] <- exp(beta0[s] + beta1[s] * region[j] + log(offset[j]))
+
+    #Abundance per transect
+    GSrep[t,j,s] <- lambda.star[t,j,s] * gs.lam.star[t,j,s]
+
+    }#end t loop
+
+    #Abundance per transect averaged over surveys
+    GSsite[j,s] <- mean(GSrep[1:nreps[j], j, s])
+
+    }#end j loop
+
+    #Mean abundance per transect
+    GS[s] <- mean(GSsite[1:nsites, s])   
+
+    #Abundance per transect for each region
+    RegGS[s,1] <- mean(GSsite[1:13, s])     #Mara Triangle
+    RegGS[s,2] <- mean(GSsite[14:17, s])    #Talek region
+
+    }#end s loop
+    
+    #-------------------#
+    #-Shared Components-#
+    #-------------------#
+
+    for(i in 1:nobs){
+    
+    #Observed distance classes
+    dclass[i] ~ dcat(fc[1:nD, rep[i], site[i], spec[i]])
+    
+    gs[i] ~ dpois(gs.lam.star[rep[i], site[i], spec[i]]) T(1,)
+
+    }#end i loop
+    
+    for(j in 1:nsites){
+    
+    for(t in 1:nreps[j]){
+    
+    #Overdispersion parameter for Expected Group Size
+    gs.rho[t,j] ~ dgamma(r.G, r.G)
+    gs.rho.c[t,j] ~ dgamma(rc.G, rc.G)
+    
+    #Overdispersion parameter for Expected Number of Groups
+    rho[t,j] ~ dgamma(r.N, r.N)
+    rho.C[t,j] ~ dgamma(rc.N, rc.N)
+    
+    for(s in 1:nspec){
+    
+    #Construct cell probabilities for nG cells using numerical integration
+    #Sum of the area (rectangles) under the detection function
+
+    for(k in 1:nD){
+    
+    #Half normal detection function at midpt (length of rectangle)
+    g[k,t,j,s] <- exp(-mdpt[k]*mdpt[k]/(2*sigma[j,s]*sigma[j,s]))
+    
+    #Proportion of each interval (width of rectangle) for both sides of the transect
+    pi[k,t,j,s] <- v/B
+    
+    #Detection probability for each distance class k (area of each rectangle)
+    f[k,t,j,s] <- g[k,t,j,s] * pi[k,t,j,s]
+    
+    #Conditional detection probability (scale to 1)
+    fc[k,t,j,s] <- f[k,t,j,s]/pcap[t,j,s]
+    
+    }#end k loop
+
+    #Detection probability at each transect (sum of rectangles)
+    pcap[t,j,s] <- sum(f[1:nD,t,j,s])
+    
+    }#end s loop
+    
+    #-----------------#
+    #-Covariate Model-#
+    #-----------------#
+    
+    #Observed population @ each t,j,s (N-mixture)
+    BBJ.y[t,j] ~ dbin(pcap[t,j,15], BBJ.N[t,j])
+    LION.y[t,j] ~ dbin(pcap[t,j,18], LION.N[t,j])
+    HYENA.y[t,j] ~ dbin(pcap[t,j,17], HYENA.N[t,j])
+    CATTLE.y[t,j] ~ dbin(pcap[t,j,16], CATTLE.N[t,j])
+    SHOAT.y[t,j] ~ dbin(pcap[t,j,19], SHOAT.N[t,j])
+    
+    #Latent Number of Groups @ each t,j,s (negative binomial)
+    BBJ.N[t,j] ~ dpois(BBJ.ls[t,j])
+    LION.N[t,j] ~ dpois(LION.ls[t,j])
+    HYENA.N[t,j] ~ dpois(HYENA.ls[t,j])
+    CATTLE.N[t,j] ~ dpois(CATTLE.ls[t,j])
+    SHOAT.N[t,j] ~ dpois(SHOAT.ls[t,j])
+    
+    #Expected Number of Groups
+    BBJ.ls[t,j] <- rho.C[t,j] * BBJ.l[t,j]
+    LION.ls[t,j] <- rho.C[t,j] * LION.l[t,j]
+    HYENA.ls[t,j] <- rho.C[t,j] * HYENA.l[t,j]
+    CATTLE.ls[t,j] <- rho.C[t,j] * CATTLE.l[t,j]
+    SHOAT.ls[t,j] <- rho.C[t,j] * SHOAT.l[t,j]
+
+    #Linear predictor for Expected Number of Groups
+    BBJ.l[t,j] <- exp(CARN.a0[1] + CARN.a1[1] * region[j] + BBJ.psi[j] + log(offset[j]))
+    LION.l[t,j] <- exp(CARN.a0[2] + CARN.a1[2] * region[j] + LION.psi[j] + log(offset[j]))
+    HYENA.l[t,j] <- exp(CARN.a0[3] + CARN.a1[3] * region[j] + HYENA.psi[j] +log(offset[j]))
+    CATTLE.l[t,j] <- exp(CATTLE.a0 + CATTLE.a1 * region[j] + CATTLE.psi[j] + log(offset[j]))
+    SHOAT.l[t,j] <- exp(SHOAT.a0 + SHOAT.a1 * region[j] + SHOAT.psi[j] + log(offset[j]))
+    
+    #Expected Group Size
+    gs.lam.star[t,j,15] <- gs.rho.c[t,j] * BBJ.gsl[t,j]
+    gs.lam.star[t,j,18] <- gs.rho.c[t,j] * LION.gsl[t,j]
+    gs.lam.star[t,j,17] <- gs.rho.c[t,j] * HYENA.gsl[t,j]
+    gs.lam.star[t,j,16] <- gs.rho.c[t,j] * CATTLE.gsl[t,j]
+    gs.lam.star[t,j,19] <- gs.rho.c[t,j] * SHOAT.gsl[t,j]
+
+    #Linear predictor for Expected Number of Groups
+    BBJ.gsl[t,j] <- exp(BBJ.b0 + CARN.b1[1] * region[j] + log(offset[j]))
+    LION.gsl[t,j] <- exp(LION.b0 + CARN.b1[2] * region[j] + log(offset[j]))
+    HYENA.gsl[t,j] <- exp(HYENA.b0 + CARN.b1[3] * region[j] + log(offset[j]))
+    CATTLE.gsl[t,j] <- exp(CATTLE.b0 + CATTLE.b1 * region[j] + log(offset[j]))
+    SHOAT.gsl[t,j] <- exp(SHOAT.b0 + SHOAT.b1 * region[j] + log(offset[j]))
+    
+    #Abundance per transect
+    BBJ.A[t,j] <- BBJ.ls[t,j] * gs.lam.star[t,j,15]
+    LION.A[t,j] <- LION.ls[t,j] * gs.lam.star[t,j,18]
+    HYENA.A[t,j] <- HYENA.ls[t,j] * gs.lam.star[t,j,17]
+    CATTLE.A[t,j] <- CATTLE.ls[t,j] * gs.lam.star[t,j,16]
+    SHOAT.A[t,j] <- SHOAT.ls[t,j] * gs.lam.star[t,j,19]
+    
+    #Residuals
+    BBJ.r[t,j] <- (BBJ.A[t,j] - mean(BBJ.A1[])) * (BBJ.A[t,j] - mean(BBJ.A1[]))
+    LION.r[t,j] <- (LION.A[t,j] - mean(LION.A1[])) * (LION.A[t,j] - mean(LION.A1[]))
+    HYENA.r[t,j] <- (HYENA.A[t,j] - mean(HYENA.A1[])) * (HYENA.A[t,j] - mean(HYENA.A1[]))
+    CATTLE.r[t,j] <- (CATTLE.A[t,j] - mean(CATTLE.A1[])) * (CATTLE.A[t,j] - mean(CATTLE.A1[]))
+    SHOAT.r[t,j] <- (SHOAT.A[t,j] - mean(SHOAT.A1[])) * (SHOAT.A[t,j] - mean(SHOAT.A1[]))    
+
+    #Standardized Covariates
+    BBJ[t,j] <- (BBJ.A[t,j] - meanBBJ)/sdBBJ
+    LION[t,j] <- (LION.A[t,j] - meanLION)/sdLION
+    HYENA[t,j] <- (HYENA.A[t,j] - meanHYENA)/sdHYENA
+    CATTLE[t,j] <- (CATTLE.A[t,j] - meanCATTLE)/sdCATTLE
+    SHOAT[t,j] <- (SHOAT.A[t,j] - meanSHOAT)/sdSHOAT    
+    
+    }#end t loop
+    
+    BBJ.r1[j] <- sum(BBJ.r[1:nreps[j],j])
+    LION.r1[j] <- sum(LION.r[1:nreps[j],j])
+    HYENA.r1[j] <- sum(HYENA.r[1:nreps[j],j])
+    CATTLE.r1[j] <- sum(CATTLE.r[1:nreps[j],j])
+    SHOAT.r1[j] <- sum(SHOAT.r[1:nreps[j],j])    
+    
+    BBJ.A1[j] <- mean(BBJ.A[1:nreps[j],j])
+    LION.A1[j] <- mean(LION.A[1:nreps[j],j])
+    HYENA.A1[j] <- mean(HYENA.A[1:nreps[j],j])
+    CATTLE.A1[j] <- mean(CATTLE.A[1:nreps[j],j])
+    SHOAT.A1[j] <- mean(SHOAT.A[1:nreps[j],j])    
+    
+    BBJ.psi[j] ~ dnorm(0, BBJ.tau)
+    LION.psi[j] ~ dnorm(0, LION.tau)
+    HYENA.psi[j] ~ dnorm(0, HYENA.tau)
+    CATTLE.psi[j] ~ dnorm(0, CATTLE.tau)
+    SHOAT.psi[j] ~ dnorm(0, SHOAT.tau)    
+    
+    #Scale parameter
+    sigma[j,15] <- exp(CARN.g0[1] + CARN.g1 * region[j])
+    sigma[j,18] <- exp(CARN.g0[2] + CARN.g1 * region[j])
+    sigma[j,17] <- exp(CARN.g0[3] + CARN.g1 * region[j])
+    sigma[j,16] <- exp(LIVESTOCK.g0[1] + CATTLE.g1 * region[j])
+    sigma[j,19] <- exp(LIVESTOCK.g0[2] + SHOAT.g1 * region[j])    
+    
+    }#end j loop
+    
+    
+    for(s in 1:2){
+    LIVESTOCK.g0[s] ~ dnorm(l.g0.mu, l.g0.tau)
+    }
+    
+    l.g0.mu ~ dunif(0, 8)
+    l.g0.tau <- 1/(l.g0.sig * l.g0.sig)
+    l.g0.sig ~ dunif(0, 8)
+    
+    #Community parameters for carnivores
+    for(s in 1:3){
+    CARN.g0[s] ~ dnorm(c.g0.mu, c.g0.tau)
+    CARN.a0[s] ~ dnorm(c.a0.mu, c.a0.tau)
+    CARN.a1[s] ~ dnorm(c.a1.mu, c.a1.tau)
+    CARN.b1[s] ~ dnorm(c.b1.mu, c.b1.tau)
+    }
+  
+    c.g0.mu ~ dunif(0, 8)
+    c.g0.tau <- 1/(c.g0.sig * c.g0.sig)
+    c.g0.sig ~ dunif(0, 8)
+    
+    CARN.g1 ~ dnorm(0, 0.1)
+    CATTLE.g1 ~ dnorm(0, 0.1)
+    SHOAT.g1 ~ dnorm(0, 0.1)
+    
+    c.a0.mu ~ dnorm(0, 0.1)
+    c.a0.tau ~ dgamma(0.1, 0.1)
+    CATTLE.a0 ~ dnorm(0, 0.1)
+    SHOAT.a0 ~ dnorm(0, 0.1)
+    
+    c.a1.mu ~ dnorm(0, 0.1)
+    c.a1.tau ~ dgamma(0.1, 0.1)
+    CATTLE.a1 ~ dnorm(0, 0.1)
+    SHOAT.a1 ~ dnorm(0, 0.1)
+    
+    BBJ.b0 ~ dunif(0, 10)
+    LION.b0 ~ dunif(0, 10)
+    HYENA.b0 ~ dunif(0, 10)
+    CATTLE.b0 ~ dunif(0, 10)
+    SHOAT.b0 ~ dunif(0, 10)
+    
+    c.b1.mu ~ dnorm(0, 0.1)
+    c.b1.tau ~ dgamma(0.1, 0.1)
+    CATTLE.b1 ~ dnorm(0, 0.1)
+    SHOAT.b1 ~ dnorm(0, 0.1)
+    
+    #Covariate Means
+    meanBBJ <- mean(BBJ.A1[])
+    meanLION <- mean(LION.A1[])
+    meanHYENA <- mean(HYENA.A1[])
+    meanCATTLE <- mean(CATTLE.A1[])
+    meanSHOAT <- mean(SHOAT.A1[])
+    
+    #Covariate SD
+    sdBBJ <- sqrt(sum(BBJ.r1[])/(260 - 1))
+    sdLION <- sqrt(sum(LION.r1[])/(260 - 1))
+    sdHYENA <- sqrt(sum(HYENA.r1[])/(260 - 1))
+    sdCATTLE <- sqrt(sum(CATTLE.r1[])/(260 - 1))
+    sdSHOAT <- sqrt(sum(SHOAT.r1[])/(260 - 1))
+    
+    BBJ.tau ~ dgamma(0.1, 0.1)
+    LION.tau ~ dgamma(0.1, 0.1)
+    HYENA.tau ~ dgamma(0.1, 0.1)
+    CATTLE.tau ~ dgamma(0.1, 0.1)
+    SHOAT.tau ~ dgamma(0.1, 0.1)
+    
+    BBJ.sig <- 1/sqrt(BBJ.tau)
+    LION.sig <- 1/sqrt(LION.tau)
+    HYENA.sig <- 1/sqrt(HYENA.tau)
+    CATTLE.sig <- 1/sqrt(CATTLE.tau)
+    SHOAT.sig <- 1/sqrt(SHOAT.tau)
+    
+    rc.G ~ dgamma(0.1, 0.1)
+    rc.N ~ dgamma(0.1, 0.1)
+  
+    }
