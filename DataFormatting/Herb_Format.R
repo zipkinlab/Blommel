@@ -18,7 +18,7 @@ library(raster)
 #-Import CSV-#
 #------------#
 
-raw <- read.csv("RawData/Herbivore Utilization Complete.csv", header=TRUE)
+raw <- read.csv("RawData/Herbivore Utilization Complete.csv", header=TRUE) #where does this data live? 
 raw <- tbl_df(raw)
 
 #Sort by species
@@ -31,7 +31,7 @@ levels(raw$Animal)
 #-Filter for migrants-#
 #---------------------#
 
-data <- filter(raw,
+data <- filter(raw,                    #these are only the non-migratory species or migratory? 
                Animal == "Buffalo" |
                Animal == "Eland" |
                Animal == "Elephant" |
@@ -68,7 +68,7 @@ u2 <- data$AdjNorthing
 d.dir <- "C:/Users/farrm/OneDrive/Hyena Project/datasets/NewDatasets/Rscripts/ExcelFiles/Site"
 
 #Transects by site
-Site1 <- readOGR(dsn = d.dir, layer = "Site1")
+Site1 <- readOGR(dsn = d.dir, layer = "Site1") #this is just reading the shapefiles? 
 Site2 <- readOGR(dsn = d.dir, layer = "Site2")
 Site3 <- readOGR(dsn = d.dir, layer = "Site3")
 Site4 <- readOGR(dsn = d.dir, layer = "Site4")
@@ -149,7 +149,7 @@ dclass <- rep(NA, N)
 dst <- rep(NA, N)
 
 #ID for nearest site
-q <- rep(NA, N)
+q <- rep(NA, N) #why do this? for each observation? 
 
 #Site
 site <- rep(NA, N)
@@ -164,10 +164,11 @@ nG <- length(di) - 1
 #-Simulate Data-#
 #---------------#
 
-for(i in 1:N){
-  for(j in 1:J){
+for(i in 1:N){ #for each observation
+  for(j in 1:J){ #at each transect point 
     
     #Distance from each group to each point on the transect
+    #euclidean
     d[i,j] <- sqrt((u1[i] - X[j])^2 + (u2[i] - Y[j])^2)
   }
   
@@ -177,22 +178,22 @@ for(i in 1:N){
   #Index of which point in 1:J is the nearest
   q[i] <- which.min(d[i,])
   
-  for(j in 1:nsites){
+  for(j in 1:nsites){ #at each site
     
     #Determine the site for each group
     if(si[j] < q[i] && q[i] <= si[j+1])
       site[i] <- j
   }
-  for(k in 1:nG){
+  for(k in 1:nG){ #this is distance classes? 
   if(di[k] < dst[i] && dst[i] <= di[k+1])
     dclass[i] <- k
   }
   
 }
 
-rm(d)
+rm(d) #get rid of distance from group to transect 
 
-#Remove obs over 1000
+#Remove obs over 1000 #why? unreliable? 
 data$dclass <- dclass
 data$site <- site
 data <- data[-(which(dst>1000)),]
@@ -221,14 +222,14 @@ H <- D %>%filter(Animal %in% name)
 y <- array(NA, dim = c(16,17,14))
 
 #Generate observation array
-for(s in 1:14){
+for(s in 1:14){ #for each species
   A <- (filter(H, Animal == name[s]))
-  A <- group_by(A, Site_ID, Sample_ID, Animal)%>%summarize(n())
-  W <- data.frame(rep(1:17, rep(16, 17)), rep(1:16, 17))
+  A <- group_by(A, Site_ID, Sample_ID, Animal)%>%summarize(n()) #summarized data within one species 
+  W <- data.frame(rep(1:17, rep(16, 17)), rep(1:16, 17)) #confused by this dataframe 
   colnames(W) <- c("Site_ID", "Sample_ID")
   B <- full_join(W, A, by.x = c("Site_ID", "Sample_ID"), by.y = c("Site_ID", "Sample_ID"))
   B$`n()`[is.na(B$`n()`)] = 0
-  C <- split(B$`n()`, f = B$Site_ID)
+  C <- split(B$`n()`, f = B$Site_ID) #not sure what this does either 
   C <- do.call(cbind, C)
   for(j in 14:17){
     for(t in 14:16){
@@ -279,7 +280,7 @@ gs <- H$Count
 dclass <- H$dclass
 
 #----------------------------#
-#-Offset for transect length-#
+#-Offset for transect length-# #What does this mean? 
 #----------------------------#
 
 offset <- as.vector(c(1, 1, 1, 1, 1, 1, 1, 1.080,
@@ -293,7 +294,7 @@ offset <- as.vector(c(1, 1, 1, 1, 1, 1, 1, 1.080,
 region <- c(rep(0, 13), rep(1, 4))
 
 #-----------------------#
-#-Create NDVI Covariate-#
+#-Create NDVI Covariate-# #what is NDVI? does this have to do with land cover? 
 #-----------------------#
 
 NDVIdata <- read.csv("RawData/NDVI.csv", header = FALSE)
@@ -313,8 +314,8 @@ for(j in 1:nsites){
   for(t in 1:nreps[j]){
     tmp1 <- filter(Date, site==j&rep==t)%>%summarize(min(date)+1)
     tmp2 <- as.vector(filter(NDVIdata, Site==j)%>%select(Date))
-    tmp3 <- which.min(abs(as.numeric(tmp2[,]-tmp1[,])))
-    NDVI[t,j] <- NDVIdata[NDVIdata$Site==j&NDVIdata$Date==tmp2[tmp3,],1]
+    tmp3 <- which.min(abs(as.numeric(tmp2[,]-tmp1[,]))) #what does this do? 
+    NDVI[t,j] <- NDVIdata[NDVIdata$Site==j&NDVIdata$Date==tmp2[tmp3,],1] #confused by this line as well 
   }
 }
 
@@ -332,7 +333,8 @@ H <- D %>%filter(Animal %in% name)
 #Initialize observation array (rep x site x species)
 covar <- array(NA, dim = c(16,17,5))
 
-#Generate observation array
+#Generate observation array 
+#CB: I need to review why/how this is done 
 for(s in 1:5){
   A <- (filter(H, Animal == name[s]))
   A <- group_by(A, Site_ID, Sample_ID, Animal)%>%summarize(n())
@@ -370,9 +372,9 @@ dclass <- c(dclass, H$dclass)
 
 #Number of total species
 nspec <- 19
-
+#standard error? 
 BBJ <- (Carnivore$mean$GSrep[,,1] - 
-          mean(Carnivore$mean$GSrep[,,1], na.rm = TRUE))/sd(Carnivore$mean$GSrep[,,1], na.rm = TRUE)
+          mean(Carnivore$mean$GSrep[,,1], na.rm = TRUE))/sd(Carnivore$mean$GSrep[,,1], na.rm = TRUE) #what is GSrep? 
 Hyena <- (Carnivore$mean$GSrep[,,2] - 
             mean(Carnivore$mean$GSrep[,,2], na.rm = TRUE))/sd(Carnivore$mean$GSrep[,,2], na.rm = TRUE)
 Lion <- (Carnivore$mean$GSrep[,,3] - 
@@ -393,14 +395,14 @@ Shoat <- (Shoat - mean(Shoat, na.rm = TRUE))/sd(Shoat, na.rm = TRUE)
 Dstdata <- read.csv("RawData/Dst.csv", header = FALSE)
 colnames(Dstdata) <- c("RiverDst", "BoundDst")
 
-riverDst <- Dstdata$RiverDst
+riverDst <- Dstdata$RiverDst #distance from river 
 riverDst <- (riverDst - mean(riverDst, na.rm = TRUE))/sd(riverDst, na.rm = TRUE)
 
-boundDst <- Dstdata$BoundDst
+boundDst <- Dstdata$BoundDst #distance from the border of the park or region? 
 boundDst <- (boundDst - mean(boundDst, na.rm = TRUE))/sd(boundDst, na.rm = TRUE)
 
 #----------------#
-#-LULC Covariate-#
+#-LULC Covariate-# #what is this? 
 #----------------#
 
 files <- list.files(path = "~/GitHub/Herbivore/GIS/SiteLULC", pattern = "tif$", full.names = TRUE)
@@ -459,6 +461,7 @@ xlim <- c(715304, 752393)
 ylim <- c(9831970, 9857296)
 
 #Visualize
+#could we do this in a loop? 
 plot(x=NULL, y=NULL, xlim=xlim, ylim=ylim, 
      yaxt = "n", xaxt = "n", ylab = "", xlab = "")
 plot(Site1, add=T, col="red")
