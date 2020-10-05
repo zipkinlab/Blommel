@@ -68,7 +68,7 @@ u2 <- data$AdjNorthing
 d.dir <- "C:/Users/farrm/OneDrive/Hyena Project/datasets/NewDatasets/Rscripts/ExcelFiles/Site"
 
 #Transects by site
-Site1 <- readOGR(dsn = d.dir, layer = "Site1") #this is just reading the shapefiles? 
+Site1 <- readOGR(dsn = d.dir, layer = "Site1") #this is reading shapefiles by transect, we will probably change this with new package sf 
 Site2 <- readOGR(dsn = d.dir, layer = "Site2")
 Site3 <- readOGR(dsn = d.dir, layer = "Site3")
 Site4 <- readOGR(dsn = d.dir, layer = "Site4")
@@ -184,7 +184,7 @@ for(i in 1:N){ #for each observation
     if(si[j] < q[i] && q[i] <= si[j+1])
       site[i] <- j
   }
-  for(k in 1:nG){ #this is distance classes? 
+  for(k in 1:nG){ #this is distance classes, just assigning classes with cutoff points  
   if(di[k] < dst[i] && dst[i] <= di[k+1])
     dclass[i] <- k
   }
@@ -193,7 +193,7 @@ for(i in 1:N){ #for each observation
 
 rm(d) #get rid of distance from group to transect 
 
-#Remove obs over 1000 #why? unreliable? 
+#Remove obs over 1000 #cutoff in distance samplng, detection gets too low 
 data$dclass <- dclass
 data$site <- site
 data <- data[-(which(dst>1000)),]
@@ -225,7 +225,7 @@ y <- array(NA, dim = c(16,17,14))
 for(s in 1:14){ #for each species
   A <- (filter(H, Animal == name[s]))
   A <- group_by(A, Site_ID, Sample_ID, Animal)%>%summarize(n()) #summarized data within one species 
-  W <- data.frame(rep(1:17, rep(16, 17)), rep(1:16, 17)) #confused by this dataframe 
+  W <- data.frame(rep(1:17, rep(16, 17)), rep(1:16, 17)) #done to get around the problem of inequal sampling in different regions 
   colnames(W) <- c("Site_ID", "Sample_ID")
   B <- full_join(W, A, by.x = c("Site_ID", "Sample_ID"), by.y = c("Site_ID", "Sample_ID"))
   B$`n()`[is.na(B$`n()`)] = 0
@@ -280,12 +280,12 @@ gs <- H$Count
 dclass <- H$dclass
 
 #----------------------------#
-#-Offset for transect length-# #What does this mean? 
+#-Offset for transect length-# 
 #----------------------------#
 
 offset <- as.vector(c(1, 1, 1, 1, 1, 1, 1, 1.080,
                       0.878, 1, 1, 1, 1, 1, 1.100,
-                      1.300, 1.237))
+                      1.300, 1.237)) #not all transects are the same length 
 
 #-------------------------#
 #-Create Region Covariate-#
@@ -294,10 +294,10 @@ offset <- as.vector(c(1, 1, 1, 1, 1, 1, 1, 1.080,
 region <- c(rep(0, 13), rep(1, 4))
 
 #-----------------------#
-#-Create NDVI Covariate-# #what is NDVI? does this have to do with land cover? 
+#-Create NDVI Covariate-#  
 #-----------------------#
 
-NDVIdata <- read.csv("RawData/NDVI.csv", header = FALSE)
+NDVIdata <- read.csv("RawData/NDVI.csv", header = FALSE) #Normalized Difference Vegetation Index, essentially represents greenness - how much vegetation there is
 colnames(NDVIdata) <- c("NDVI", "Year", "Day", "Site")
 
 NDVIdata$Date <- as.Date(NDVIdata$Day, origin = paste(NDVIdata$Year,"-01-01", sep = ""))
@@ -310,12 +310,13 @@ colnames(Date) <- c("date","site","rep")
 
 NDVI <- array(NA, dim = c(16,17))
 
+#this is a way to 'match' NDVI to the sampling data we have (spatially and temporally) 
 for(j in 1:nsites){
   for(t in 1:nreps[j]){
     tmp1 <- filter(Date, site==j&rep==t)%>%summarize(min(date)+1)
     tmp2 <- as.vector(filter(NDVIdata, Site==j)%>%select(Date))
-    tmp3 <- which.min(abs(as.numeric(tmp2[,]-tmp1[,]))) #what does this do? 
-    NDVI[t,j] <- NDVIdata[NDVIdata$Site==j&NDVIdata$Date==tmp2[tmp3,],1] #confused by this line as well 
+    tmp3 <- which.min(abs(as.numeric(tmp2[,]-tmp1[,]))) #what does this do?  
+    NDVI[t,j] <- NDVIdata[NDVIdata$Site==j&NDVIdata$Date==tmp2[tmp3,],1] 
   }
 }
 
@@ -402,7 +403,7 @@ boundDst <- Dstdata$BoundDst #distance from the border of the park or region?
 boundDst <- (boundDst - mean(boundDst, na.rm = TRUE))/sd(boundDst, na.rm = TRUE)
 
 #----------------#
-#-LULC Covariate-# #what is this? 
+#-LULC Covariate-# #Land Use Land Cover 
 #----------------#
 
 files <- list.files(path = "~/GitHub/Herbivore/GIS/SiteLULC", pattern = "tif$", full.names = TRUE)
@@ -461,7 +462,8 @@ xlim <- c(715304, 752393)
 ylim <- c(9831970, 9857296)
 
 #Visualize
-#could we do this in a loop? 
+#could we do this in a loop? Especially with simple features 
+#maybe don't try to adapt this, just start fresh 
 plot(x=NULL, y=NULL, xlim=xlim, ylim=ylim, 
      yaxt = "n", xaxt = "n", ylab = "", xlab = "")
 plot(Site1, add=T, col="red")
