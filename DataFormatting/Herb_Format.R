@@ -18,7 +18,7 @@ library(raster)
 #-Import CSV-#
 #------------#
 
-raw <- read.csv("RawData/Herbivore Utilization Complete.csv", header=TRUE) #where does this data live? 
+raw <- read.csv("~/Blommel/RawData/Herbivore Utilization Complete.csv", header=TRUE)
 raw <- tbl_df(raw)
 
 #Sort by species
@@ -31,7 +31,7 @@ levels(raw$Animal)
 #-Filter for migrants-#
 #---------------------#
 
-data <- filter(raw,                    #these are only the non-migratory species or migratory? 
+data <- filter(raw,
                Animal == "Buffalo" |
                Animal == "Eland" |
                Animal == "Elephant" |
