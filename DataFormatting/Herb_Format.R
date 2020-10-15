@@ -13,12 +13,17 @@ library(tidyr)
 library(rgdal)
 library(sp)
 library(raster)
+library(sf)
 
 #------------#
 #-Import CSV-#
 #------------#
 
 raw <- read.csv("~/Blommel/RawData/Herbivore Utilization Complete.csv", header=TRUE)
+raw <- tbl_df(raw)
+
+# path to the data on my machine - CB
+#raw <- read.csv("~/ZQE_Lab/HerbData/Herbivore Utilization Complete.csv", header=TRUE)
 raw <- tbl_df(raw)
 
 #Sort by species
@@ -67,8 +72,36 @@ u2 <- data$AdjNorthing
 #Directory for transects by site shapefile
 d.dir <- "C:/Users/farrm/OneDrive/Hyena Project/datasets/NewDatasets/Rscripts/ExcelFiles/Site"
 
+#Directory for transects by site shapefile -CB
+d.dir <- "~/ZQE_Lab/HerbData/Shapefiles/"
+setwd(d.dir)
+
+#testing out sf package commands and exploring shape file types -CB
+
+#setwd for distance sampling shapefiles -CB
+setwd("./DS")
+#read in DS data -CB
+DS <- st_read(dsn = ".", layer = "DS_10kmpersite") 
+class(DS)
+attr(DS, "sf_column")
+print(DS, n = 3)
+
+st_geometry_type(DS)
+st_crs(DS)
+st_bbox(DS)
+DS
+
+#setwd for transect count shapefiles -CB
+setwd("..")
+setwd("./Transects")
+#read in transect count data -CB
+TC <- st_read(dsn = ".", layer = "Transects")  #TC for transect count -CB
+class(TC)
+attr(TC, "sf_column")
+print(TC, n = 3)
+
 #Transects by site
-Site1 <- readOGR(dsn = d.dir, layer = "Site1") #this is reading shapefiles by transect, we will probably change this with new package sf 
+Site1 <- readOGR(dsn = d.dir, layer = "Site1") #this is reading shapefiles by transect, we will probably change this with new package sf -CB
 Site2 <- readOGR(dsn = d.dir, layer = "Site2")
 Site3 <- readOGR(dsn = d.dir, layer = "Site3")
 Site4 <- readOGR(dsn = d.dir, layer = "Site4")
@@ -107,6 +140,18 @@ s14p <- spsample(Site14, 100, type = "regular")
 s15p <- spsample(Site15, 100, type = "regular")
 s16p <- spsample(Site16, 100, type = "regular")
 s17p <- spsample(Site17, 100, type = "regular")
+
+#sample points using sf package
+#sample coordinates from DS dataset  -CB
+DSp <- st_sample(x = DS, size = 100, type = "regular")
+
+#explore visualizations -CB
+plot(st_geometry(DS)[1:3])
+plot(DSp, add = TRUE)
+
+#sample coordinates from TC dataset -CB
+TCp <- st_sample(x = TC, size = 100, type = "regular")
+TCp
 
 #--------------------------#
 #-Combine Site Coordinates-#
