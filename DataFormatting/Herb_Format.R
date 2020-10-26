@@ -171,6 +171,21 @@ Y <- c(s1p@coords[,2], s2p@coords[,2], s3p@coords[,2], s4p@coords[,2],
        s13p@coords[,2], s14p@coords[,2], s15p@coords[,2], s16p@coords[,2],
        s17p@coords[,2])
 
+
+#using sf package -CB
+#Easting (DS)
+st_coordinates(DSp)[,1] #explore command -CB
+st_coordinates(DSp)[,2]
+X <- st_coordinates(DSp)[,1] 
+#Northing (DS)
+Y <- st_coordinates(DSp)[,2]
+
+#Easting (TC)
+st_coordinates(TCp)
+X_tc <- st_coordinates(TCp)[,1] #specify different coordinates (X_tc & Y_tc) for tc dataset
+#Northing (TC)
+Y_tc <- st_coordinates(TCp)[,2]
+
 #-------------------#
 #-Initialize Values-#
 #-------------------#
@@ -188,6 +203,7 @@ si <- seq(0, J, (J/nsites))
 di <- seq(0,1000,25)
 
 #Distance class
+#N is total observations? -CB
 dclass <- rep(NA, N)
 
 #Minimum distance value
@@ -238,7 +254,7 @@ for(i in 1:N){ #for each observation
 
 rm(d) #get rid of distance from group to transect 
 
-#Remove obs over 1000 #cutoff in distance samplng, detection gets too low 
+#Remove obs over 1000 #cutoff in distance sampling, detection gets too low 
 data$dclass <- dclass
 data$site <- site
 data <- data[-(which(dst>1000)),]
@@ -341,6 +357,8 @@ region <- c(rep(0, 13), rep(1, 4))
 #-----------------------#
 #-Create NDVI Covariate-#  
 #-----------------------#
+
+#stopped here, I think I need more data
 
 NDVIdata <- read.csv("RawData/NDVI.csv", header = FALSE) #Normalized Difference Vegetation Index, essentially represents greenness - how much vegetation there is
 colnames(NDVIdata) <- c("NDVI", "Year", "Day", "Site")
