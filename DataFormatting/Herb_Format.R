@@ -22,10 +22,6 @@ library(sf)
 raw <- read.csv("~/Blommel/RawData/Herbivore Utilization Complete.csv", header=TRUE)
 raw <- tbl_df(raw)
 
-# path to the data on my machine - CB
-#raw <- read.csv("~/ZQE_Lab/HerbData/Herbivore Utilization Complete.csv", header=TRUE)
-raw <- tbl_df(raw)
-
 #Sort by species
 raw <- arrange(raw, Animal)
 
@@ -66,125 +62,52 @@ u1 <- data$AdjEasting
 u2 <- data$AdjNorthing
 
 #-------------------------------#
-#-Create twisty sampling design-#
+#Assign each point to a transect#
 #-------------------------------#
-
+ 
 #Directory for transects by site shapefile
-d.dir <- "C:/Users/farrm/OneDrive/Hyena Project/datasets/NewDatasets/Rscripts/ExcelFiles/Site"
-
-#Directory for transects by site shapefile -CB
-d.dir <- "~/ZQE_Lab/HerbData/Shapefiles/"
+#d.dir <- "~/ZQE_Lab/HerbData/Shapefiles/"
+d.dir <- "~/Blommel/RawData/Shapefiles/"
 setwd(d.dir)
 
-#testing out sf package commands and exploring shape file types -CB
-
-#setwd for distance sampling shapefiles -CB
-setwd("./DS")
-#read in DS data -CB
+#setwd for distance sampling shapefiles  
+#setwd("./DS")
+#read in DS data 
 DS <- st_read(dsn = ".", layer = "DS_10kmpersite") 
-class(DS)
-attr(DS, "sf_column")
-print(DS, n = 3)
-
-st_geometry_type(DS)
-st_crs(DS)
-st_bbox(DS)
 DS
 
-#setwd for transect count shapefiles -CB
-setwd("..")
-setwd("./Transects")
-#read in transect count data -CB
-TC <- st_read(dsn = ".", layer = "Transects")  #TC for transect count -CB
-class(TC)
-attr(TC, "sf_column")
-print(TC, n = 3)
+#read in data as an sf object
+data <- st_as_sf(data, coords = c("AdjEasting", "AdjNorthing"), crs = st_crs(DS))
 
-#Transects by site
-Site1 <- readOGR(dsn = d.dir, layer = "Site1") #this is reading shapefiles by transect, we will probably change this with new package sf -CB
-Site2 <- readOGR(dsn = d.dir, layer = "Site2")
-Site3 <- readOGR(dsn = d.dir, layer = "Site3")
-Site4 <- readOGR(dsn = d.dir, layer = "Site4")
-Site5 <- readOGR(dsn = d.dir, layer = "Site5")
-Site6 <- readOGR(dsn = d.dir, layer = "Site6")
-Site7 <- readOGR(dsn = d.dir, layer = "Site7")
-Site8 <- readOGR(dsn = d.dir, layer = "Site8")
-Site9 <- readOGR(dsn = d.dir, layer = "Site9")
-Site10 <- readOGR(dsn = d.dir, layer = "Site10")
-Site11 <- readOGR(dsn = d.dir, layer = "Site11")
-Site12 <- readOGR(dsn = d.dir, layer = "Site12")
-Site13 <- readOGR(dsn = d.dir, layer = "Site13")
-Site14 <- readOGR(dsn = d.dir, layer = "Site14")
-Site15 <- readOGR(dsn = d.dir, layer = "Site15")
-Site16 <- readOGR(dsn = d.dir, layer = "Site16")
-Site17 <- readOGR(dsn = d.dir, layer = "Site17")
+#create distance matrix
+ds_matrix <- st_distance(data, DS)
+ds_matrix #visualize 
+dim(ds_matrix) #23443 by 18, are there 18 transects? - CB
 
-#-----------------------------------#
-#-Sample Coordinates from Transects-#
-#-----------------------------------#
+#assign transect to each observation 
+ds_obs_transects <- apply(ds_matrix, 1, which.min)
+length(ds_obs_transects) #23443, should be correct, matches number of obs - CB
 
-s1p <- spsample(Site1, 100, type = "regular")
-s2p <- spsample(Site2, 100, type = "regular")
-s3p <- spsample(Site3, 100, type = "regular")
-s4p <- spsample(Site4, 100, type = "regular")
-s5p <- spsample(Site5, 100, type = "regular")
-s6p <- spsample(Site6, 100, type = "regular")
-s7p <- spsample(Site7, 100, type = "regular")
-s8p <- spsample(Site8, 100, type = "regular")
-s9p <- spsample(Site9, 100, type = "regular")
-s10p <- spsample(Site10, 100, type = "regular")
-s11p <- spsample(Site11, 100, type = "regular")
-s12p <- spsample(Site12, 100, type = "regular")
-s13p <- spsample(Site13, 100, type = "regular")
-s14p <- spsample(Site14, 100, type = "regular")
-s15p <- spsample(Site15, 100, type = "regular")
-s16p <- spsample(Site16, 100, type = "regular")
-s17p <- spsample(Site17, 100, type = "regular")
+#how to add transect back to the data set? convert back to dataframe? - CB
+#creat observation array or assign distance classes first? - CB
 
-#sample points using sf package
-#sample coordinates from DS dataset  -CB
-DSp <- st_sample(x = DS, size = 100, type = "regular")
+#commented out TC data stuff until I figure out how to shape that file - CB
 
-#explore visualizations -CB
-plot(st_geometry(DS)[1:3])
-plot(DSp, add = TRUE)
+#setwd for transect count shapefiles 
+#d.dir <- "~/ZQE_Lab/HerbData/Shapefiles/"
+#setwd(d.dir)
+#setwd("./Transects")
+#read in transect count data
+#TC <- st_read(dsn = ".", layer = "Transects")  #TC for transect count
+#TC
 
-#sample coordinates from TC dataset -CB
-TCp <- st_sample(x = TC, size = 100, type = "regular")
-TCp
+#back a directory and read in TC data
+#setwd("C:/Users/cblom/Documents/ZQE_Lab/HerbData")
 
-#--------------------------#
-#-Combine Site Coordinates-#
-#--------------------------#
-
-#Easting
-X <- c(s1p@coords[,1], s2p@coords[,1], s3p@coords[,1], s4p@coords[,1], 
-       s5p@coords[,1], s6p@coords[,1], s7p@coords[,1], s8p@coords[,1],
-       s9p@coords[,1], s10p@coords[,1], s11p@coords[,1], s12p@coords[,1],
-       s13p@coords[,1], s14p@coords[,1], s15p@coords[,1], s16p@coords[,1],
-       s17p@coords[,1])
-
-#Northing
-Y <- c(s1p@coords[,2], s2p@coords[,2], s3p@coords[,2], s4p@coords[,2], 
-       s5p@coords[,2], s6p@coords[,2], s7p@coords[,2], s8p@coords[,2],
-       s9p@coords[,2], s10p@coords[,2], s11p@coords[,2], s12p@coords[,2],
-       s13p@coords[,2], s14p@coords[,2], s15p@coords[,2], s16p@coords[,2],
-       s17p@coords[,2])
-
-
-#using sf package -CB
-#Easting (DS)
-st_coordinates(DSp)[,1] #explore command -CB
-st_coordinates(DSp)[,2]
-X <- st_coordinates(DSp)[,1] 
-#Northing (DS)
-Y <- st_coordinates(DSp)[,2]
-
-#Easting (TC)
-st_coordinates(TCp)
-X_tc <- st_coordinates(TCp)[,1] #specify different coordinates (X_tc & Y_tc) for tc dataset
-#Northing (TC)
-Y_tc <- st_coordinates(TCp)[,2]
+#read in TC data as an sf object 
+#TCdata <- read.csv("~/ZQE_Lab/HerbData/tblPreyCensus_2012to2014.csv", header=TRUE)
+#length(unique(TCdata$transect))
+#TCdata <- st_as_sf(TCdata, coords = c(), crs = st_crs(TC))
 
 #-------------------#
 #-Initialize Values-#
