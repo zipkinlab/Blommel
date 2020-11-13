@@ -91,6 +91,30 @@ length(ds_obs_transects) #23443, should be correct, matches number of obs - CB
 #how to add transect back to the data set? convert back to dataframe? - CB
 #creat observation array or assign distance classes first? - CB
 
+#add transect (Site) for each observation back to the dataset 
+data <- as.data.frame(data)
+data$Site = ds_obs_transects
+
+#--------------------#
+#DS Observation array#
+#--------------------#
+
+length(unique(data$Animal)) #19 species? - CB
+length(unique(data$Site)) #18 sites? - CB
+length(unique(data$Date)) #141 different dates - how many replicates? - CB
+#how many replicates? 16? Does replicate column exist in the data set?- CB
+
+y <- array(rep(0), dim = c(16,18,19))
+
+for(i in dim(data)[1]){ #loop through all obs.
+  y[rep[i], site[i], spec[i]] <- y[i,i,i] + data$count[i] 
+}
+
+
+#----------------------------------#
+#Assign each TC point to a transect#
+#----------------------------------#
+
 #commented out TC data stuff until I figure out how to shape that file - CB
 
 #setwd for transect count shapefiles 
