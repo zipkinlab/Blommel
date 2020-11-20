@@ -131,21 +131,36 @@ data$dclass = dclass
 #Assign each TC point to a transect#
 #----------------------------------#
 
-#setwd for transect count shapefiles 
-#d.dir <- "~/ZQE_Lab/HerbData/Shapefiles/"
-#setwd(d.dir)
-#setwd("./Transects")
-#read in transect count data
-#TC <- st_read(dsn = ".", layer = "Transects")  #TC for transect count
-#TC
+#setwd for transect count shapefiles - CB
+d.dir <- "~/ZQE_Lab/HerbData/Shapefiles/"
+setwd(d.dir)
+setwd("./Transects")
+#read in transect count shapefiles - CB
+TCshape <- st_read(dsn = ".", layer = "Transects")  #TC for transect count - CB
+#view shapefiles - CB
+plot(TCshape)
 
-#back a directory and read in TC data
-#setwd("C:/Users/cblom/Documents/ZQE_Lab/HerbData")
+#back a directory and read in TC data - CB
+setwd("C:/Users/cblom/Documents/ZQE_Lab/HerbData")
 
-#read in TC data as an sf object 
-#TCdata <- read.csv("~/ZQE_Lab/HerbData/tblPreyCensus_2012to2014.csv", header=TRUE)
-#length(unique(TCdata$transect))
-#TCdata <- st_as_sf(TCdata, coords = c(), crs = st_crs(TC))
+#read in TC data as an sf object - CB
+TC <- read.csv("~/ZQE_Lab/HerbData/tblPreyCensus_2012to2014.csv", header=TRUE)
+length(unique(TC$transect))
+dim(TC)
+#need to reshape first - CB
+#TC <- st_as_sf(TCdata, coords = c(), crs = st_crs(TC)
+
+
+#reshape TC to long format - CB
+id_names <- colnames(TC)[1:8]
+id_names
+
+TC <- melt(TC, id=id_names)
+unique(TC$variable)
+
+TC = TC[TC$value > 0,]
+dim(TC)
+
 
 #---------------#
 #-Simulate Data-#
