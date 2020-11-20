@@ -2,7 +2,8 @@
 #-Set Working directory-#
 #-----------------------#
 
-setwd("C:/Users/farrm/Documents/GitHub/Herbivore")
+setwd("C:/Users/cblom/Documents/ZQE_Lab/HerbData")
+
 
 #----------------#
 #-Load libraries-#
@@ -19,7 +20,7 @@ library(sf)
 #-Import CSV-#
 #------------#
 
-raw <- read.csv("~/Blommel/RawData/Herbivore Utilization Complete.csv", header=TRUE)
+raw <- read.csv("~/ZQE_Lab/HerbData/Herbivore Utilization Complete.csv", header=TRUE)
 raw <- tbl_df(raw)
 
 #Sort by species
@@ -34,44 +35,43 @@ levels(raw$Animal)
 
 data <- filter(raw,
                Animal == "Buffalo" |
-               Animal == "Eland" |
-               Animal == "Elephant" |
-               Animal == "Giraffe" |
-               Animal == "Grants" |
-               Animal == "Hartebeest" |
-               Animal == "Hippo" |
-               Animal == "Impala" |
-               Animal == "Thomsons" |
-               Animal == "Topi" |
-               Animal == "Warthog" |
-               Animal == "Waterbuck" |
-               Animal == "Wildebeest" | 
-               Animal == "Zebra" |
-               Animal == "Cattle" |
-               Animal == "Shoat" |
-               Animal == "Lion" |
-               Animal == "Hyena" |
-               Animal == "BlackBackedJackal")
+                 Animal == "Eland" |
+                 Animal == "Elephant" |
+                 Animal == "Giraffe" |
+                 Animal == "Grants" |
+                 Animal == "Hartebeest" |
+                 Animal == "Hippo" |
+                 Animal == "Impala" |
+                 Animal == "Thomsons" |
+                 Animal == "Topi" |
+                 Animal == "Warthog" |
+                 Animal == "Waterbuck" |
+                 Animal == "Wildebeest" | 
+                 Animal == "Zebra" |
+                 Animal == "Cattle" |
+                 Animal == "Shoat" |
+                 Animal == "Lion" |
+                 Animal == "Hyena" |
+                 Animal == "BlackBackedJackal")
 
 #Remove incomplete obs
 data <- data[-which(is.na(data$Count)|data$Count<1),]
-
+data
 N <- length(data$Animal)
+
 
 u1 <- data$AdjEasting
 u2 <- data$AdjNorthing
 
-#-------------------------------#
-#Assign each point to a transect#
-#-------------------------------#
+#----------------------------------#
+#Assign each DS point to a transect#
+#----------------------------------#
  
 #Directory for transects by site shapefile
-#d.dir <- "~/ZQE_Lab/HerbData/Shapefiles/"
-d.dir <- "~/Blommel/RawData/Shapefiles/"
+d.dir <- "~/ZQE_Lab/HerbData/Shapefiles/"
 setwd(d.dir)
-
 #setwd for distance sampling shapefiles  
-#setwd("./DS")
+setwd("./DS")
 #read in DS data 
 DS <- st_read(dsn = ".", layer = "DS_10kmpersite") 
 DS
@@ -86,7 +86,8 @@ dim(ds_matrix) #23443 by 18, are there 18 transects? - CB
 
 #assign transect to each observation 
 ds_obs_transects <- apply(ds_matrix, 1, which.min)
-length(ds_obs_transects) #23443, should be correct, matches number of obs - CB
+length(ds_obs_transects) #23443, should be correct, matches number of obs 
+
 
 #how to add transect back to the data set? convert back to dataframe? - CB
 #creat observation array or assign distance classes first? - CB
@@ -94,6 +95,37 @@ length(ds_obs_transects) #23443, should be correct, matches number of obs - CB
 #add transect (Site) for each observation back to the dataset 
 data <- as.data.frame(data)
 data$Site = ds_obs_transects
+data$Distance_to_transect = min_dst
+
+#-----------------------#
+#Assign distance classes#
+#-----------------------#
+
+#ID for distance class
+di <- seq(0,1000,25)
+
+#Distance class
+dclass <- rep(NA, N) #should this be rep 0? - CB
+
+#Number of distance classes
+nG <- length(di) - 1
+
+#Minimum distance to assigned transect
+min_dst <- apply(ds_matrix, 1, min)
+length(min_dst)
+dst <- data$Distance_to_transect
+
+for(i in 1:N){
+  for(k in 1:nG){
+    if(di[k] < dst[i] && dst[i] <= di[k+1]) #why the k+1 argument? 
+      dclass[i] <- k
+      
+  }
+}
+
+head(dclass)
+length(dclass)
+data$dclass = dclass
 
 #--------------------#
 #DS Observation array#
@@ -101,21 +133,23 @@ data$Site = ds_obs_transects
 
 length(unique(data$Animal)) #19 species? - CB
 length(unique(data$Site)) #18 sites? - CB
-length(unique(data$Date)) #141 different dates - how many replicates? - CB
+length(unique(data$Month)) #11 months, monthly replicates? - CB
 #how many replicates? 16? Does replicate column exist in the data set?- CB
 
-y <- array(rep(0), dim = c(16,18,19))
+y <- array(rep(0), dim = c(11,18,19))
 
-for(i in dim(data)[1]){ #loop through all obs.
-  y[rep[i], site[i], spec[i]] <- y[i,i,i] + data$count[i] 
-}
+dim(data)[1]
+
+#suggested loop from Matt
+#for(i in dim(data)[1]){ 
+#  y[rep[i], site[i], spec[i]] <- y[i,i,i] + data$count[i] 
+#}
+
 
 
 #----------------------------------#
 #Assign each TC point to a transect#
 #----------------------------------#
-
-#commented out TC data stuff until I figure out how to shape that file - CB
 
 #setwd for transect count shapefiles 
 #d.dir <- "~/ZQE_Lab/HerbData/Shapefiles/"
@@ -133,77 +167,13 @@ for(i in dim(data)[1]){ #loop through all obs.
 #length(unique(TCdata$transect))
 #TCdata <- st_as_sf(TCdata, coords = c(), crs = st_crs(TC))
 
-#-------------------#
-#-Initialize Values-#
-#-------------------#
-
-#Index for sites
-nsites <- 17
-
-#Index for transect points
-J <- length(X)
-
-#ID for sites
-si <- seq(0, J, (J/nsites))
-
-#ID for distance class
-di <- seq(0,1000,25)
-
-#Distance class
-#N is total observations? -CB
-dclass <- rep(NA, N)
-
-#Minimum distance value
-dst <- rep(NA, N)
-
-#ID for nearest site
-q <- rep(NA, N) #why do this? for each observation? 
-
-#Site
-site <- rep(NA, N)
-
-#Distance value to each transect point
-d <- array(NA, dim = c(N, J))
-
-#Number of distance classes
-nG <- length(di) - 1
-
 #---------------#
 #-Simulate Data-#
 #---------------#
 
-for(i in 1:N){ #for each observation
-  for(j in 1:J){ #at each transect point 
-    
-    #Distance from each group to each point on the transect
-    #euclidean
-    d[i,j] <- sqrt((u1[i] - X[j])^2 + (u2[i] - Y[j])^2)
-  }
-  
-  #Distance to nearest point on the transect
-  dst[i] <- min(d[i,])
-  
-  #Index of which point in 1:J is the nearest
-  q[i] <- which.min(d[i,])
-  
-  for(j in 1:nsites){ #at each site
-    
-    #Determine the site for each group
-    if(si[j] < q[i] && q[i] <= si[j+1])
-      site[i] <- j
-  }
-  for(k in 1:nG){ #this is distance classes, just assigning classes with cutoff points  
-  if(di[k] < dst[i] && dst[i] <= di[k+1])
-    dclass[i] <- k
-  }
-  
-}
-
-rm(d) #get rid of distance from group to transect 
-
-#Remove obs over 1000 #cutoff in distance sampling, detection gets too low 
-data$dclass <- dclass
-data$site <- site
+#Remove obs over 1000 #cutoff in distance samplng, detection gets too low 
+#data$dclass <- dclass
+#data$site <- site
 data <- data[-(which(dst>1000)),]
 u1 <- u1[-(which(dst>1000))]
 u2 <- u2[-(which(dst>1000))]
@@ -212,13 +182,15 @@ u2 <- u2[-(which(dst>1000))]
 sample_ID <- rep(NA, length(data[,1]))
 data <- data.frame(data, sample_ID)
 
+data
+
 data$sample_ID[data$Territory == "North"] <- filter(data,Territory=="North")%>%group_by(Year, Month)%>%group_indices()
 data$sample_ID[data$Territory == "South"] <- filter(data,Territory=="South")%>%group_by(Year, Month)%>%group_indices()
 data$sample_ID[data$Territory == "West"] <- filter(data,Territory=="West")%>%group_by(Year, Month)%>%group_indices()
 
 
 #Filter out unnecessary data
-D <- data.frame(data$Animal, data$site, data$sample_ID, data$Count, data$dclass)
+D <- data.frame(data$Animal, data$Site, data$sample_ID, data$Count, data$dclass)
 colnames(D) <- c("Animal", "Site_ID", "Sample_ID", "Count", "dclass")
 
 #Vector of species
@@ -226,12 +198,19 @@ name <- c("Buffalo", "Eland", "Elephant", "Giraffe", "Grants", "Hartebeest", "Hi
 
 H <- D %>%filter(Animal %in% name)
 
+
 #Initialize observation array (rep x site x species)
+#create arracy with rep, number of sites, number of species 
+# could probably replace it with 
+#not sure about the dimensions of this - CB
+length(unique(H$Sample_ID))
+length(unique(H$Site_ID)) #18 sites?- CB
+length(unique(H$Animal))
 y <- array(NA, dim = c(16,17,14))
 
 #Generate observation array
 for(s in 1:14){ #for each species
-  A <- (filter(H, Animal == name[s]))
+  A <- (filter(H, Animal == name[s])) #why is this necessary? 
   A <- group_by(A, Site_ID, Sample_ID, Animal)%>%summarize(n()) #summarized data within one species 
   W <- data.frame(rep(1:17, rep(16, 17)), rep(1:16, 17)) #done to get around the problem of inequal sampling in different regions 
   colnames(W) <- c("Site_ID", "Sample_ID")
@@ -245,7 +224,7 @@ for(s in 1:14){ #for each species
     }
   }
   y[,,s] <- C
-}
+} #getting consistent indexing errors/length mismatches - CB
 
 #-------------------------#
 #-Create distance classes-#
