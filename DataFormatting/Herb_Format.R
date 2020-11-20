@@ -127,26 +127,6 @@ head(dclass)
 length(dclass)
 data$dclass = dclass
 
-#--------------------#
-#DS Observation array#
-#--------------------#
-
-length(unique(data$Animal)) #19 species? - CB
-length(unique(data$Site)) #18 sites? - CB
-length(unique(data$Month)) #11 months, monthly replicates? - CB
-#how many replicates? 16? Does replicate column exist in the data set?- CB
-
-y <- array(rep(0), dim = c(11,18,19))
-
-dim(data)[1]
-
-#suggested loop from Matt
-#for(i in dim(data)[1]){ 
-#  y[rep[i], site[i], spec[i]] <- y[i,i,i] + data$count[i] 
-#}
-
-
-
 #----------------------------------#
 #Assign each TC point to a transect#
 #----------------------------------#
@@ -172,17 +152,13 @@ dim(data)[1]
 #---------------#
 
 #Remove obs over 1000 #cutoff in distance samplng, detection gets too low 
-#data$dclass <- dclass
-#data$site <- site
 data <- data[-(which(dst>1000)),]
 u1 <- u1[-(which(dst>1000))]
 u2 <- u2[-(which(dst>1000))]
 
-#Sample ID
+#Sample ID (replicate?) - CB
 sample_ID <- rep(NA, length(data[,1]))
 data <- data.frame(data, sample_ID)
-
-data
 
 data$sample_ID[data$Territory == "North"] <- filter(data,Territory=="North")%>%group_by(Year, Month)%>%group_indices()
 data$sample_ID[data$Territory == "South"] <- filter(data,Territory=="South")%>%group_by(Year, Month)%>%group_indices()
@@ -198,33 +174,55 @@ name <- c("Buffalo", "Eland", "Elephant", "Giraffe", "Grants", "Hartebeest", "Hi
 
 H <- D %>%filter(Animal %in% name)
 
+#--------------------#
+#DS Observation array#
+#--------------------#
 
 #Initialize observation array (rep x site x species)
 #create arracy with rep, number of sites, number of species 
 # could probably replace it with 
 #not sure about the dimensions of this - CB
-length(unique(H$Sample_ID))
+length(unique(H$Sample_ID)) #16 samples
 length(unique(H$Site_ID)) #18 sites?- CB
-length(unique(H$Animal))
-y <- array(NA, dim = c(16,17,14))
+length(unique(H$Animal)) #14 species
+y <- array(rep(0), dim = c(length(unique(H$Sample_ID)),
+                           length(unique(H$Site_ID)),
+                           length(unique(H$Animal))))
+dim(y)
 
-#Generate observation array
-for(s in 1:14){ #for each species
-  A <- (filter(H, Animal == name[s])) #why is this necessary? 
-  A <- group_by(A, Site_ID, Sample_ID, Animal)%>%summarize(n()) #summarized data within one species 
-  W <- data.frame(rep(1:17, rep(16, 17)), rep(1:16, 17)) #done to get around the problem of inequal sampling in different regions 
-  colnames(W) <- c("Site_ID", "Sample_ID")
-  B <- full_join(W, A, by.x = c("Site_ID", "Sample_ID"), by.y = c("Site_ID", "Sample_ID"))
-  B$`n()`[is.na(B$`n()`)] = 0
-  C <- split(B$`n()`, f = B$Site_ID) #not sure what this does either 
-  C <- do.call(cbind, C)
-  for(j in 14:17){
-    for(t in 14:16){
-      C[t,j] = NA
+#suggested loop from Matt
+#for(i in dim(H)[1]){ 
+#  y[rep[i], site[i], spec[i]] <- y[i,i,i] + data$count[i] 
+#}
+
+for(t in 1:length(unique(H$Sample_ID))){
+  for(j in 1:length(unique(H$Site_ID))){
+    for(s in 1:length(unique(H$Animal))){
+      obs <- filter(H, Animal == name[s], Site_ID == j, Sample_ID == t)
+      C <- sum(obs$Count)
+      y[t,j,s] <- y[t,j,s] + C
     }
   }
-  y[,,s] <- C
-} #getting consistent indexing errors/length mismatches - CB
+}
+dim(y)
+
+#Generate observation array
+#for(s in 1:14){ #for each species
+#  A <- (filter(H, Animal == name[s])) 
+#  A <- group_by(A, Site_ID, Sample_ID, Animal)%>%summarize(n()) #summarized data within one species 
+#  W <- data.frame(rep(1:17, rep(16, 17)), rep(1:16, 17)) #done to get around the problem of inequal sampling in different regions 
+#  colnames(W) <- c("Site_ID", "Sample_ID")
+#  B <- full_join(W, A, by.x = c("Site_ID", "Sample_ID"), by.y = c("Site_ID", "Sample_ID"))
+#  B$`n()`[is.na(B$`n()`)] = 0
+#  C <- split(B$`n()`, f = B$Site_ID) #not sure what this does either 
+#  C <- do.call(cbind, C)
+#  for(j in 14:17){
+#    for(t in 14:16){
+#      C[t,j] = NA
+#    }
+#  }
+#  y[,,s] <- C
+#} 
 
 #-------------------------#
 #-Create distance classes-#
