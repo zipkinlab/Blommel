@@ -127,9 +127,10 @@ head(dclass)
 length(dclass)
 data$dclass = dclass
 
-#---------------------------#
-#Read in and reshape TC data#
-#---------------------------#
+
+#----------------------------------#
+#Read in and reshape/format TC data#
+#----------------------------------#
 
 #setwd for transect count shapefiles - CB
 d.dir <- "~/ZQE_Lab/HerbData/Shapefiles/"
@@ -161,10 +162,86 @@ dim(TC)
 names(TC)[names(TC) == "variable"] <- "Animal"
 names(TC)[names(TC) == "value"] <- "Count"
 
+#----------------#
+#Simulate TC Data#
+#----------------#
 
-#---------------#
-#-Simulate Data-#
-#---------------#
+TC <- separate(data = TC, col = date, into = c("month", "day", "year"), sep = "/")
+
+names(TC)
+unique(TC$transect)
+
+
+sample_ID <- rep(NA, length(TC[,1]))
+TC <- data.frame(TC, sample_ID)
+
+#by transect? by region? - CB
+TC$sample_ID[TC$transect == "North"] <- filter(TC,transect=="North")%>%group_by(year, month)%>%group_indices()
+TC$sample_ID[TC$transect == "R2"] <- filter(TC,transect=="R2")%>%group_by(year, month)%>%group_indices()
+TC$sample_ID[TC$transect == "WHIGH"] <- filter(TC,transect=="WHIGH")%>%group_by(year, month)%>%group_indices()
+TC$sample_ID[TC$transect == "Burn2"] <- filter(TC,transect=="Burn2")%>%group_by(year, month)%>%group_indices()
+TC$sample_ID[TC$transect == "RSP"] <- filter(TC,transect=="RSP")%>%group_by(year, month)%>%group_indices()
+TC$sample_ID[TC$transect == "S1"] <- filter(TC,transect=="S1")%>%group_by(year, month)%>%group_indices()
+TC$sample_ID[TC$transect == "SST"] <- filter(TC,transect=="SST")%>%group_by(year, month)%>%group_indices()
+TC$sample_ID[TC$transect == "S2"] <- filter(TC,transect=="S2")%>%group_by(year, month)%>%group_indices()
+TC$sample_ID[TC$transect == "W3"] <- filter(TC,transect=="W3")%>%group_by(year, month)%>%group_indices()
+TC$sample_ID[TC$transect == "WLOW"] <- filter(TC,transect=="WLOW")%>%group_by(year, month)%>%group_indices()
+TC$sample_ID[TC$transect == "HZT"] <- filter(TC,transect=="HZT")%>%group_by(year, month)%>%group_indices()
+TC$sample_ID[TC$transect == "R1"] <- filter(TC,transect=="R1")%>%group_by(year, month)%>%group_indices()
+
+
+#Filter out unnecessary data
+#no distance classes for TC data - CB
+D_TC <- data.frame(TC$Animal, TC$transect, TC$sample_ID, TC$Count)
+colnames(D_TC) <- c("Animal", "Site_ID", "Sample_ID", "Count")
+
+#Vector of species
+#different name format in TC data than in DS, new name vector - CB
+name <- c("buffalo", "eland", "elephant", "giraffe", "grants", "hartebeest", "hippo", "impala", "thomsons", "topi", "warthog", "waterbuck", "wildebeest", "zebra")
+
+H_TC <- D_TC %>%filter(Animal %in% name)
+
+class(H_TC$Count)
+H_TC$Count <- as.integer(H_TC$Count)
+class(H_TC$Count)
+
+
+#--------------------#
+#TC Observation Array#
+#--------------------#
+
+#Initialize observation array (rep x site x species)
+#create arracy with rep, number of sites, number of species 
+# could probably replace it with 
+#not sure about the dimensions of this - CB
+length(unique(H_TC$Sample_ID)) #36 samples??? - CB
+length(unique(H_TC$Site_ID)) #12 sites 
+length(unique(H_TC$Animal)) #14 species
+y_TC <- array(rep(0), dim = c(length(unique(H_TC$Sample_ID)),
+                           length(unique(H_TC$Site_ID)),
+                           length(unique(H_TC$Animal))))
+dim(y_TC)
+
+#t = replicate; j = transect; s = species 
+for(t in 1:length(unique(H_TC$Sample_ID))){
+  for(j in 1:length(unique(H_TC$Site_ID))){
+    for(s in 1:length(unique(H_TC$Animal))){
+      obs <- filter(H_TC, Animal == name[s], Site_ID == j, Sample_ID == t)
+      C <- sum(obs$Count) 
+      y_TC[t,j,s] <- y_TC[t,j,s] + C
+    }
+  }
+} 
+
+dim(y_TC)
+
+head(y_TC)
+y_TC #got all zeros, not sure why this is - likely simulated Sample_ID incorrectly? - CB
+
+
+#------------------#
+#-Simulate DS Data-#
+#------------------#
 
 #Remove obs over 1000 #cutoff in distance samplng, detection gets too low 
 data <- data[-(which(dst>1000)),]
@@ -189,6 +266,8 @@ name <- c("Buffalo", "Eland", "Elephant", "Giraffe", "Grants", "Hartebeest", "Hi
 
 H <- D %>%filter(Animal %in% name)
 
+class(H$Count)
+
 #--------------------#
 #DS Observation array#
 #--------------------#
@@ -210,6 +289,7 @@ dim(y)
 #  y[rep[i], site[i], spec[i]] <- y[i,i,i] + data$count[i] 
 #}
 
+#t = replicate; j = transect; s = species 
 for(t in 1:length(unique(H$Sample_ID))){
   for(j in 1:length(unique(H$Site_ID))){
     for(s in 1:length(unique(H$Animal))){
@@ -221,23 +301,8 @@ for(t in 1:length(unique(H$Sample_ID))){
 }
 dim(y)
 
-#Generate observation array
-#for(s in 1:14){ #for each species
-#  A <- (filter(H, Animal == name[s])) 
-#  A <- group_by(A, Site_ID, Sample_ID, Animal)%>%summarize(n()) #summarized data within one species 
-#  W <- data.frame(rep(1:17, rep(16, 17)), rep(1:16, 17)) #done to get around the problem of inequal sampling in different regions 
-#  colnames(W) <- c("Site_ID", "Sample_ID")
-#  B <- full_join(W, A, by.x = c("Site_ID", "Sample_ID"), by.y = c("Site_ID", "Sample_ID"))
-#  B$`n()`[is.na(B$`n()`)] = 0
-#  C <- split(B$`n()`, f = B$Site_ID) #not sure what this does either 
-#  C <- do.call(cbind, C)
-#  for(j in 14:17){
-#    for(t in 14:16){
-#      C[t,j] = NA
-#    }
-#  }
-#  y[,,s] <- C
-#} 
+head(y)
+y
 
 #-------------------------#
 #-Create distance classes-#
