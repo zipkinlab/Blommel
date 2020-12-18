@@ -168,27 +168,28 @@ names(TC)[names(TC) == "value"] <- "Count"
 
 TC <- separate(data = TC, col = date, into = c("month", "day", "year"), sep = "/")
 
-names(TC)
-unique(TC$transect)
-
 
 sample_ID <- rep(NA, length(TC[,1]))
 TC <- data.frame(TC, sample_ID)
 
-#by transect? by region? - CB
-TC$sample_ID[TC$transect == "North"] <- filter(TC,transect=="North")%>%group_by(year, month)%>%group_indices()
-TC$sample_ID[TC$transect == "R2"] <- filter(TC,transect=="R2")%>%group_by(year, month)%>%group_indices()
-TC$sample_ID[TC$transect == "WHIGH"] <- filter(TC,transect=="WHIGH")%>%group_by(year, month)%>%group_indices()
-TC$sample_ID[TC$transect == "Burn2"] <- filter(TC,transect=="Burn2")%>%group_by(year, month)%>%group_indices()
-TC$sample_ID[TC$transect == "RSP"] <- filter(TC,transect=="RSP")%>%group_by(year, month)%>%group_indices()
-TC$sample_ID[TC$transect == "S1"] <- filter(TC,transect=="S1")%>%group_by(year, month)%>%group_indices()
-TC$sample_ID[TC$transect == "SST"] <- filter(TC,transect=="SST")%>%group_by(year, month)%>%group_indices()
-TC$sample_ID[TC$transect == "S2"] <- filter(TC,transect=="S2")%>%group_by(year, month)%>%group_indices()
-TC$sample_ID[TC$transect == "W3"] <- filter(TC,transect=="W3")%>%group_by(year, month)%>%group_indices()
-TC$sample_ID[TC$transect == "WLOW"] <- filter(TC,transect=="WLOW")%>%group_by(year, month)%>%group_indices()
-TC$sample_ID[TC$transect == "HZT"] <- filter(TC,transect=="HZT")%>%group_by(year, month)%>%group_indices()
-TC$sample_ID[TC$transect == "R1"] <- filter(TC,transect=="R1")%>%group_by(year, month)%>%group_indices()
+#by transect? - CB
+#TC$sample_ID[TC$transect == "North"] <- filter(TC,transect=="North")%>%group_by(year, month)%>%group_indices()
+#TC$sample_ID[TC$transect == "R2"] <- filter(TC,transect=="R2")%>%group_by(year, month)%>%group_indices()
+#TC$sample_ID[TC$transect == "WHIGH"] <- filter(TC,transect=="WHIGH")%>%group_by(year, month)%>%group_indices()
+#TC$sample_ID[TC$transect == "Burn2"] <- filter(TC,transect=="Burn2")%>%group_by(year, month)%>%group_indices()
+#TC$sample_ID[TC$transect == "RSP"] <- filter(TC,transect=="RSP")%>%group_by(year, month)%>%group_indices()
+#TC$sample_ID[TC$transect == "S1"] <- filter(TC,transect=="S1")%>%group_by(year, month)%>%group_indices()
+#TC$sample_ID[TC$transect == "SST"] <- filter(TC,transect=="SST")%>%group_by(year, month)%>%group_indices()
+#TC$sample_ID[TC$transect == "S2"] <- filter(TC,transect=="S2")%>%group_by(year, month)%>%group_indices()
+#TC$sample_ID[TC$transect == "W3"] <- filter(TC,transect=="W3")%>%group_by(year, month)%>%group_indices()
+#TC$sample_ID[TC$transect == "WLOW"] <- filter(TC,transect=="WLOW")%>%group_by(year, month)%>%group_indices()
+#TC$sample_ID[TC$transect == "HZT"] <- filter(TC,transect=="HZT")%>%group_by(year, month)%>%group_indices()
+#TC$sample_ID[TC$transect == "R1"] <- filter(TC,transect=="R1")%>%group_by(year, month)%>%group_indices()
 
+#by region? - CB
+TC$sample_ID[TC$region == "Narok"] <- filter(TC,region=="Narok")%>%group_by(year, month)%>%group_indices()
+TC$sample_ID[TC$region == "Conservancy"] <- filter(TC,region=="Conservancy")%>%group_by(year, month)%>%group_indices()
+TC$sample_ID
 
 #Filter out unnecessary data
 #no distance classes for TC data - CB
@@ -197,14 +198,15 @@ colnames(D_TC) <- c("Animal", "Site_ID", "Sample_ID", "Count")
 
 #Vector of species
 #different name format in TC data than in DS, new name vector - CB
-name <- c("buffalo", "eland", "elephant", "giraffe", "grants", "hartebeest", "hippo", "impala", "thomsons", "topi", "warthog", "waterbuck", "wildebeest", "zebra")
+name_TC <- c("buffalo", "eland", "elephant", "giraffe", "grants", "hartebeest", "hippo", "impala", "thomsons", "topi", "warthog", "waterbuck", "wildebeest", "zebra")
+#site_ID non numerical, need siteID name vector - CB
+site_TC <- c("WHIGH", "R2", "Burn2", "RSP", "S1", "SST", "S2", "W3", "North", "WLOW", "HZT", "R1")
 
-H_TC <- D_TC %>%filter(Animal %in% name)
+H_TC <- D_TC %>%filter(Animal %in% name_TC)
 
 class(H_TC$Count)
 H_TC$Count <- as.integer(H_TC$Count)
 class(H_TC$Count)
-
 
 #--------------------#
 #TC Observation Array#
@@ -214,19 +216,20 @@ class(H_TC$Count)
 #create arracy with rep, number of sites, number of species 
 # could probably replace it with 
 #not sure about the dimensions of this - CB
-length(unique(H_TC$Sample_ID)) #36 samples??? - CB
+length(unique(H_TC$Sample_ID)) #36 samples??? some number of samples whether sample ID is calculated by region or transect - CB
 length(unique(H_TC$Site_ID)) #12 sites 
 length(unique(H_TC$Animal)) #14 species
 y_TC <- array(rep(0), dim = c(length(unique(H_TC$Sample_ID)),
                            length(unique(H_TC$Site_ID)),
                            length(unique(H_TC$Animal))))
 dim(y_TC)
+y_TC
 
 #t = replicate; j = transect; s = species 
 for(t in 1:length(unique(H_TC$Sample_ID))){
   for(j in 1:length(unique(H_TC$Site_ID))){
     for(s in 1:length(unique(H_TC$Animal))){
-      obs <- filter(H_TC, Animal == name[s], Site_ID == j, Sample_ID == t)
+      obs <- filter(H_TC, Animal == name_TC[s], Site_ID == site_TC[j], Sample_ID == t)
       C <- sum(obs$Count) 
       y_TC[t,j,s] <- y_TC[t,j,s] + C
     }
@@ -236,7 +239,7 @@ for(t in 1:length(unique(H_TC$Sample_ID))){
 dim(y_TC)
 
 head(y_TC)
-y_TC #got all zeros, not sure why this is - likely simulated Sample_ID incorrectly? - CB
+y_TC #lots of zeros, maybe simulted sample_id incorrectly? - CB
 
 
 #------------------#
