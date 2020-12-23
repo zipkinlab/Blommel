@@ -229,6 +229,10 @@ nreps <- NULL
 nreps[1] <- max(DS$reps) #distance sampling
 nreps[2] <- max(TC$reps) #transect counts
 
+#start and end replicate for each site
+nstart <- c(rep(1,nsites[1]), rep(nreps[1]+1,nsites[2]))
+nend <- c(rep(nreps[1],nsites[1]), rep(nreps[1]+nreps[2],nsites[2]))
+
 #adjust transect counts replicate ID
 TC <- TC %>% mutate(reps = reps + nreps[1])
 
@@ -283,11 +287,11 @@ offset <- area/1E6
 #--------------#
 
 Data <- list(y, dclass, v, B, mdpt, nG, nobs,
-             nreps, nsites, nspec, DS$reps, DS$site, DS$spec,
+             nreps, nstart, nend, nsites, nspec, DS$reps, DS$site, DS$spec,
              offset)
 
 heads <- c("y", "dclass", "v", "B", "mdpt", "nG", "nobs",
-           "nreps", "nsites", "nspec", "reps", "site", "spec")
+           "nreps", "nstart", "nend", "nsites", "nspec", "reps", "site", "spec")
            
 Data <- setNames(Data, nm = heads)
 
