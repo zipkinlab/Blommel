@@ -263,6 +263,18 @@ for(i in 1:dim(TC)[1]){
 #-Remaining indices-#
 #-------------------#
 
+#Site ID
+site <- DS %>% filter(spec < 15) %>% select(site) %>% .$site
+
+#Spec ID
+spec <- DS %>% filter(spec < 15) %>% select(spec) %>% .$spec
+
+#Distance class
+dclass <- DS %>% filter(spec < 15) %>% select(dclass) %>% .$dclass
+
+#Number of observations
+nobs <- length(site)
+
 #Width of distance classes
 v <- 25 #meters
 
@@ -287,11 +299,12 @@ offset <- area/1E6
 #--------------#
 
 Data <- list(y, dclass, v, B, mdpt, nG, nobs,
-             nreps, nstart, nend, nsites, nspec, DS$reps, DS$site, DS$spec,
+             nreps, nstart, nend, nsites, nspec, site, spec,
              offset)
 
 heads <- c("y", "dclass", "v", "B", "mdpt", "nG", "nobs",
-           "nreps", "nstart", "nend", "nsites", "nspec", "reps", "site", "spec")
+           "nreps", "nstart", "nend", "nsites", "nspec", "site", "spec",
+           "offset")
            
 Data <- setNames(Data, nm = heads)
 
