@@ -231,7 +231,7 @@ nreps[2] <- max(TC$reps) #transect counts
 
 #start and end replicate for each site
 nstart <- c(rep(1,nsites[1]), rep(nreps[1]+1,nsites[2]))
-nend <- c(rep(nreps[1],nsites[1]), rep(nreps[1]+nreps[2],nsites[2]))
+nend <- c(DS %>% group_by(site) %>% summarise(nend = max(reps)) %>% select(nend) %>% .$nend, rep(nreps[1]+nreps[2],nsites[2]))
 
 #adjust transect counts replicate ID
 TC <- TC %>% mutate(reps = reps + nreps[1])

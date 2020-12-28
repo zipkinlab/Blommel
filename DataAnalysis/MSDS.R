@@ -1,42 +1,181 @@
 #------------------------------------------------#
 #----Hierarchical Community Distance Sampling----#
-#----Script created by Matthew Farr--------------#
 #------------------------------------------------#
 
-#----------#
-#-Set Seed-#
-#----------#
+#----------------#
+#-Load Libraries-#
+#----------------#
 
-set.seed(4567)
-
-#---------------#
-#-Load Libaries-#
-#---------------#
-
-library(jagsUI)
+library(nimble)
+library(coda)
 
 #-----------#
 #-Load Data-#
 #-----------#
 
-load("herbdata.R")
+load(file = "./DataFormatting/FormattedData.Rdata")
 
-#---------------#
-#-Attach DSdata-#
-#---------------#
+#--------------#
+#-NIMBLE model-#
+#--------------#
 
-attach(DSdata)
+model.code <- nimbleCode({
+
+#--------#
+#-PRIORS-#
+#--------#
+
+#Gamma0
+mu_s ~ dunif(0, 8)            #Mean
+tau_s <- 1/(sig_s * sig_s)    #Precision
+sig_s ~ dunif(0, 8)           #Variance
+
+#Alpha0
+mu_a0 ~ dnorm(0, 0.1)        #Mean
+tau_a0 ~ dgamma(0.1, 0.1)     #Precision
+sig_a0 <- 1/sqrt(tau_a0)      #Variance
+
+#Overdispersion
+r.N ~ dunif(0,10)            #Number of groups
+
+for(s in 1:nspec){
+
+#Psi
+tau_p[s] ~ dgamma(0.1, 0.1)  #Precision
+sig_p[s] <- 1/sqrt(tau_p[s]) #Variance
+
+#Sigma
+gamma0[s] ~ dnorm(mu_s, tau_s)  #Intercept parameter
+
+#Expected Number of Groups
+alpha0[s] ~ dnorm(mu_a0, tau_a0)    #Intercept parameter
+
+#------------#
+#-LIKELIHOOD-#
+#------------#
 
 #-------------------#
-#-Compile BUGS data-#
+#-Distance sampling-#
 #-------------------#
 
-data <- list(nD = nD, v = v, site = site[spec < 15], rep = rep[spec < 15], spec = spec[spec < 15],
-             y = y, B = B, mdpt = mdpt, nherb = nherb, nobs = 22212, dclass = dclass[spec < 15], nsites = nsites, 
-             nreps = nreps, gs = gs[spec < 15], BBJ = BBJ, LION = Lion, 
-             HYENA = Hyena, CATTLE = Cattle, SHOAT = Shoat,
-             region = region, River = riverDst, border = boundDst,
-             Migrant = Migrant, LULC = LULC, offset = offset)
+for(j in 1:nsites[1]){
+
+psi[j,s] ~ dnorm(0, tau_p[s])       #Transect effect parameter
+
+#Scale parameter
+sigma[j,s] <- exp(gamma0[s])
+
+#Construct cell probabilities for nG cells using numerical integration
+#Sum of the area (rectangles) under the detection function
+
+for(k in 1:nG){
+
+#Half normal detection function at midpt (length of rectangle)
+g[k,j,s] <- exp(-mdpt[k]*mdpt[k]/(2*sigma[j,s]*sigma[j,s]))
+
+#Detection probability for each distance class k (area of each rectangle)
+f[k,j,s] <- g[k,j,s] * v/B
+
+#Conditional detection probability (scale to 1)
+fc[k,j,s] <- f[k,j,s]/pcap[j,s]
+
+}#end k loop
+
+#Detection probability at each transect (sum of rectangles)
+pcap[j,s] <- sum(f[1:nG,j,s])
+
+for(t in nstart[j]:nend[j]){
+
+#Observed population @ each t,j,s (N-mixture)
+y[t,j,s] ~ dbin(pcap[j,s], N[t,j,s])
+
+#Latent Number of Groups @ each t,j,s (negative binomial)
+N[t,j,s] ~ dpois(lambda.star[t,j,s])
+
+#Expected Number of Groups
+lambda.star[t,j,s] <- rho[t,j,s] * lambda[t,j,s]
+
+#Overdispersion parameter for Expected Number of Groups
+rho[t,j,s] ~ dgamma(r.N, r.N)
+
+#Linear predictor for Expected Number of Groups
+lambda[t,j,s] <- exp(alpha0[s] + psi[j,s] + log(offset[j]))
+
+}#end t loop distance sampling
+
+}#end j loop distance sampling
+
+#-----------------#
+#-Transect counts-#
+#-----------------#
+
+for(j in (nsites[1] + 1):(nsites[1] + nsites[2])){
+
+psi[j,s] ~ dnorm(0, tau_p[s])       #Transect effect parameter
+
+#Scale parameter
+sigma.new[j,s] <- exp(gamma0[s])
+
+for(k in 1:8){
+
+#Half normal detection function at midpt (length of rectangle)
+g[k,j,s] <- exp(-mdpt[k]*mdpt[k]/(2*sigma.new[j,s]*sigma.new[j,s]))
+
+#Detection probability for each distance class k (area of each rectangle)
+f[k,j,s] <- g[k,j,s] * v/B
+
+}#end k loop
+
+#Detection probability at each transect (sum of rectangles)
+pdet[j,s] <- sum(f[1:8,j,s])
+
+for(t in nstart[j]:nend[j]){
+
+#Observed population @ each t,j,s (Transect counts)
+y[t,j,s] ~ dbin(pdet[j,s], N[t,j,s])
+
+#Latent Number of Groups @ each t,j,s (negative binomial)
+N[t,j,s] ~ dpois(lambda.star[t,j,s])
+
+#Expected Number of Groups
+lambda.star[t,j,s] <- rho[t,j,s] * lambda[t,j,s]
+
+#Overdispersion parameter for Expected Number of Groups
+rho[t,j,s] ~ dgamma(r.N, r.N)
+
+#Linear predictor for Expected Number of Groups
+lambda[t,j,s] <- exp(alpha0[s] + psi[j,s] + log(offset[j]))
+
+}#end t loop transect counts
+
+}#end j loop transect counts
+
+}#end s loop
+
+for(i in 1:nobs){
+
+#Observed distance classes
+dclass[i] ~ dcat(fc[1:nG, site[i], spec[i]])
+
+}#end i loop
+
+})
+
+#--------------#
+#-Compile data-#
+#--------------#
+
+attach(Data)
+
+constants <- list(nG = nG, v = v, B = B, mdpt = mdpt, nobs = nobs,
+                  nstart = nstart, nend = nend, nsites = nsites, nspec = nspec,
+                  site = site, spec = spec, offset = offset)
+
+data <- list(y = y, dclass = dclass)
+
+#----------------#
+#-Initial values-#
+#----------------#
 
 Nst <- y + 1
 
@@ -47,71 +186,40 @@ alpha0 <- function(){
   return(alpha0)
 }
 
-# alpha1 <- function(){
-#   alpha1 <- c(runif(1,-2,-1), runif(1,-1,0), runif(1,-1.5,-0.5), runif(1,-1,0), runif(1,2,3), runif(1,0,1), runif(1,-2.5,-1.5),
-#               runif(1,0.5,1.5), runif(1,0,1), runif(1,0,1), runif(1,-1,0), runif(1,-1.5,-0.5), runif(1,0.5,1.5), runif(1,-0.5,0.5))
-#   return(alpha1)
-# }
-
-beta0 <- function(){
-  beta0 <- c(runif(1,3,4), runif(1,1.5,2.5), runif(1,1.5,2.5), runif(1,1,2), runif(1,0.5,1.5), runif(1,1.5,2.5), runif(1,0,1),
-              runif(1,2,3), runif(1,2,3), runif(1,1.5,2.5), runif(1,0,1), runif(1,1,2), runif(1,2,3), runif(1,3,4))
-  return(beta0)
-}
-
-beta1 <- function(){
-  beta1 <- c(runif(1,-1,0), runif(1,1,2), runif(1,-1,0), runif(1,-0.5,0.5), runif(1,0,1), runif(1,-1,0), runif(1,-1,0),
-             runif(1,-1,0), runif(1,0,1), runif(1,0,1), runif(1,-0.5,0.5), runif(1,-1,0), runif(1,0,1), runif(1,-1,0))
-  return(beta1)
-}
-
 #---------------#
 #-Inital values-#
 #---------------#
 
 inits <- function(){list(mu_s = runif(1, 5, 6), sig_s = runif(1, 0, 1),
-                         gamma0 = runif(nherb, 4.75, 6), gamma1 = runif(1, 0, 0.5),
-                         mu_a0 = runif(1, 1, 2), tau_a0 = runif(1, 0, 1), alpha0 = alpha0(), 
-                         beta0 = beta0(), mu_b1 = runif(1, -0.5, 0.5), tau_b1 = runif(1, 0, 1), beta1 = beta1(),
-                         r.N = runif(1, 1, 2), r.G = runif(1, 0.9, 1.1), tau_p = runif(nherb, 0, 10),
+                         gamma0 = runif(nspec, 4.75, 6),
+                         mu_a0 = runif(1, 1, 2), tau_a0 = runif(1, 0, 1), alpha0 = alpha0(),
+                         r.N = runif(1, 1, 2), tau_p = runif(nspec, 0, 10),
                          N = Nst)}
 
 #--------------------#
 #-Parameters to save-#
 #--------------------#
 
-params <- c('mu_s', 'sig_s', 'gamma0', 'gamma1', 
+params <- c('mu_s', 'sig_s', 'gamma0', 
             'mu_a0', 'sig_a0', 'alpha0',
-            'mu_a1', 'sig_a1', 'alpha1', 
-            'mu_a2', 'sig_a2', 'alpha2', 
-            'mu_a3', 'sig_a3', 'alpha3', 
-            'mu_a4', 'sig_a4', 'alpha4', 
-            'mu_a5', 'sig_a5', 'alpha5', 
-            'mu_a6', 'sig_a6', 'alpha6', 
-            'mu_a7', 'sig_a7', 'alpha7', 
-            'alpha8',
-            'mu_a9', 'sig_a9', 'alpha9', 
-            'mu_a10', 'sig_a10', 'alpha10', 
-            'mu_a11', 'sig_a11', 'alpha11', 
-            'mu_a12', 'sig_a12', 'alpha12', 
-            'mu_a13', 'sig_a13', 'alpha13',   
-            'mu_a14', 'sig_a14', 'alpha14',    
-            'mu_a15', 'sig_a15', 'alpha15',             
-            'beta0', 'mu_b1', 'sig_b1', 'beta1',
-            'r.N', 'r.G', 'tau_p', 'RegGS')
+            'r.N', 'tau_p')
 
 #---------------#
 #-MCMC settings-#
 #---------------#
 
-nc <- 3
+model <- nimbleModel(model.code, constants = constants, data = data, inits = inits())
+
+MCMCconf <- configureMCMC(model, monitors = params)
+
+MCMC <- buildMCMC(MCMCconf)
+
+model.comp <- compileNimble(model, MCMC)
+
+nc <- 1
 ni <- 50000
 nb <- 40000
 nt <- 5
-na <- 1000
 
-out <- jagsUI(data = data, inits = inits, parameters.to.save = params, model.file = "HMSDS_cov.txt", 
-              n.chains = nc, n.iter = ni, n.burnin = nb, n.thin = nt, n.adapt = na, parallel = TRUE)
-
-save(out, file = "out.Rdata")
+out <- runMCMC(model.comp$MCMC, niter = ni, nburnin = nb, nchains = nc, thin = nt, samplesAsCodaMCMC = TRUE)
 
