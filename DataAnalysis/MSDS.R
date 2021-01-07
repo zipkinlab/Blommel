@@ -109,46 +109,46 @@ lambda[t,j,s] <- exp(alpha0[s] + log(offset[j])) #+ psi[j,s])
 #-Transect counts-#
 #-----------------#
 
-for(j in (nsites[1] + 1):(nsites[1] + nsites[2])){
-
-# psi[j,s] ~ dnorm(0, tau_p[s])       #Transect effect parameter
-
-#Scale parameter
-sigma.new[j,s] <- exp(gamma0[s])
-
-for(k in 1:8){
-
-#Half normal detection function at midpt (length of rectangle)
-g[k,j,s] <- exp(-mdpt[k]*mdpt[k]/(2*sigma.new[j,s]*sigma.new[j,s]))
-
-#Detection probability for each distance class k (area of each rectangle)
-f[k,j,s] <- g[k,j,s] * v/B
-
-}#end k loop
-
-#Detection probability at each transect (sum of rectangles)
-pdet[j,s] <- sum(f[1:8,j,s])
-
-for(t in nstart[j]:nend[j]){
-
-#Observed population @ each t,j,s (Transect counts)
-y[t,j,s] ~ dbin(pdet[j,s], N[t,j,s])
-
-#Latent Number of Groups @ each t,j,s (negative binomial)
-N[t,j,s] ~ dpois(lambda.star[t,j,s])
-
-#Expected Number of Groups
-lambda.star[t,j,s] <- rho[t,j,s] * lambda[t,j,s]
-
-#Overdispersion parameter for Expected Number of Groups
-rho[t,j,s] ~ dgamma(r.N, r.N)
-
-#Linear predictor for Expected Number of Groups
-lambda[t,j,s] <- exp(alpha0[s] + log(offset[j])) #+ psi[j,s])
-
-}#end t loop transect counts
-
-}#end j loop transect counts
+# for(j in (nsites[1] + 1):(nsites[1] + nsites[2])){
+# 
+# # psi[j,s] ~ dnorm(0, tau_p[s])       #Transect effect parameter
+# 
+# #Scale parameter
+# sigma.new[j,s] <- exp(gamma0[s])
+# 
+# for(k in 1:8){
+# 
+# #Half normal detection function at midpt (length of rectangle)
+# g[k,j,s] <- exp(-mdpt[k]*mdpt[k]/(2*sigma.new[j,s]*sigma.new[j,s]))
+# 
+# #Detection probability for each distance class k (area of each rectangle)
+# f[k,j,s] <- g[k,j,s] * v/B
+# 
+# }#end k loop
+# 
+# #Detection probability at each transect (sum of rectangles)
+# pdet[j,s] <- sum(f[1:8,j,s])
+# 
+# for(t in nstart[j]:nend[j]){
+# 
+# #Observed population @ each t,j,s (Transect counts)
+# y[t,j,s] ~ dbin(pdet[j,s], N[t,j,s])
+# 
+# #Latent Number of Groups @ each t,j,s (negative binomial)
+# N[t,j,s] ~ dpois(lambda.star[t,j,s])
+# 
+# #Expected Number of Groups
+# lambda.star[t,j,s] <- rho[t,j,s] * lambda[t,j,s]
+# 
+# #Overdispersion parameter for Expected Number of Groups
+# rho[t,j,s] ~ dgamma(r.N, r.N)
+# 
+# #Linear predictor for Expected Number of Groups
+# lambda[t,j,s] <- exp(alpha0[s] + log(offset[j])) #+ psi[j,s])
+# 
+# }#end t loop transect counts
+# 
+# }#end j loop transect counts
 
 }#end s loop
 
