@@ -41,8 +41,8 @@ r.N ~ dunif(0,10)            #Number of groups
 for(s in 1:nspec){
 
 #Psi
-tau_p[s] ~ dgamma(0.1, 0.1)  #Precision
-sig_p[s] <- 1/sqrt(tau_p[s]) #Variance
+# tau_p[s] ~ dgamma(0.1, 0.1)  #Precision
+# sig_p[s] <- 1/sqrt(tau_p[s]) #Variance
 
 #Sigma
 gamma0[s] ~ dnorm(mu_s, tau_s)  #Intercept parameter
@@ -60,7 +60,7 @@ alpha0[s] ~ dnorm(mu_a0, tau_a0)    #Intercept parameter
 
 for(j in 1:nsites[1]){
 
-psi[j,s] ~ dnorm(0, tau_p[s])       #Transect effect parameter
+# psi[j,s] ~ dnorm(0, tau_p[s])       #Transect effect parameter
 
 #Scale parameter
 sigma[j,s] <- exp(gamma0[s])
@@ -99,7 +99,7 @@ lambda.star[t,j,s] <- rho[t,j,s] * lambda[t,j,s]
 rho[t,j,s] ~ dgamma(r.N, r.N)
 
 #Linear predictor for Expected Number of Groups
-lambda[t,j,s] <- exp(alpha0[s] + psi[j,s] + log(offset[j]))
+lambda[t,j,s] <- exp(alpha0[s] + log(offset[j])) #+ psi[j,s])
 
 }#end t loop distance sampling
 
@@ -111,7 +111,7 @@ lambda[t,j,s] <- exp(alpha0[s] + psi[j,s] + log(offset[j]))
 
 for(j in (nsites[1] + 1):(nsites[1] + nsites[2])){
 
-psi[j,s] ~ dnorm(0, tau_p[s])       #Transect effect parameter
+# psi[j,s] ~ dnorm(0, tau_p[s])       #Transect effect parameter
 
 #Scale parameter
 sigma.new[j,s] <- exp(gamma0[s])
@@ -144,7 +144,7 @@ lambda.star[t,j,s] <- rho[t,j,s] * lambda[t,j,s]
 rho[t,j,s] ~ dgamma(r.N, r.N)
 
 #Linear predictor for Expected Number of Groups
-lambda[t,j,s] <- exp(alpha0[s] + psi[j,s] + log(offset[j]))
+lambda[t,j,s] <- exp(alpha0[s] + log(offset[j])) #+ psi[j,s])
 
 }#end t loop transect counts
 
@@ -193,7 +193,7 @@ alpha0 <- function(){
 inits <- function(){list(mu_s = runif(1, 5, 6), sig_s = runif(1, 0, 1),
                          gamma0 = runif(nspec, 4.75, 6),
                          mu_a0 = runif(1, 1, 2), tau_a0 = runif(1, 0, 1), alpha0 = alpha0(),
-                         r.N = runif(1, 1, 2), tau_p = runif(nspec, 0, 10),
+                         r.N = runif(1, 1, 2), #tau_p = runif(nspec, 0, 10),
                          N = Nst)}
 
 #--------------------#
@@ -202,7 +202,7 @@ inits <- function(){list(mu_s = runif(1, 5, 6), sig_s = runif(1, 0, 1),
 
 params <- c('mu_s', 'sig_s', 'gamma0', 
             'mu_a0', 'sig_a0', 'alpha0',
-            'r.N', 'tau_p')
+            'r.N') #, 'tau_p')
 
 #---------------#
 #-MCMC settings-#
@@ -223,3 +223,10 @@ nt <- 5
 
 out <- runMCMC(model.comp$MCMC, niter = ni, nburnin = nb, nchains = nc, thin = nt, samplesAsCodaMCMC = TRUE)
 
+#-------------#
+#-Save output-#
+#-------------#
+
+ID <- paste("chain", length(list.files(pattern = "chain", full.names = FALSE)) + 1, sep="")
+assign(ID, out)
+save(list = ID, file = paste0(ID, ".Rds"))
