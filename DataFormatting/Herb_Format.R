@@ -309,14 +309,10 @@ region <- c(DS %>% group_by(site) %>% summarize(region = max(Territory)) %>% mut
 migration <- c(DS %>% mutate(migration = ifelse(Month %in% 7:11, 1, 0)) %>% group_by(reps) %>% summarise(migration = max(migration)) %>% select(migration) %>% .$migration,
             TC %>% mutate(migration = ifelse(month %in% 7:11, 1, 0)) %>% group_by(reps) %>% summarise(migration = max(migration)) %>% select(migration) %>% .$migration)
 
-tmp <- array(0, dim = dim(y))
-
-for(i in 1:dim(tmp)[2]){
-  tmp[,i,9] <- migration
-  tmp[,i,13] <- migration
-  tmp[,i,14] <- migration
-}
-
+tmp <- array(0, dim = dim(y)[-2])
+tmp[,9] <- migration
+tmp[,13] <- migration
+tmp[,14] <- migration
 migration <- tmp
 
 #-NDVI-#
