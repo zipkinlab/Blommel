@@ -7,7 +7,8 @@
 #using R projects. It seets the path root to your project directory.
 #prevents you from having to change directories
 
-setwd("C:/Users/cblom/Documents/ZQE_Lab/HerbData") #CB
+#setwd("C:/Users/cblom/Documents/ZQE_Lab/HerbData") #CB
+#delete - test
 
 #----------------#
 #-Load libraries-#
@@ -119,7 +120,7 @@ DS$reps[DS$Territory == "South"] <- filter(DS,Territory=="South")%>%group_by(Yea
 DS$reps[DS$Territory == "West"] <- filter(DS,Territory=="West")%>%group_by(Year, Month)%>%group_indices()
 
 #Filter out unnecessary data
-DS <- DS %>% select(Animal, site, reps, Count, dclass)
+DS <- DS %>% select(Animal, site, reps, Count, dclass, Day, Month, Year, Territory)
 
 DS$spec <- as.numeric(DS$Animal)
 
@@ -294,17 +295,49 @@ area <- as.numeric(c(st_length(DSshape)*1000*2, st_length(TCshape)*200*2))
 #set baseline unit as 1 km^2
 offset <- area/1E6
 
+#------------#
+#-Covariates-#
+#------------#
+
+#-Region-#
+
+region <- c(DS %>% group_by(site) %>% summarize(region = max(Territory)) %>% mutate(region = ifelse(region == "West", 1, 0)) %>% select(region) %>% .$region,
+            TC %>% group_by(site) %>% summarize(region = unique(transect)) %>% mutate(region = ifelse(region == "W3"|region == "WHIGH"|region == "WLOW", 1, 0)) %>% select(region) %>% .$region)
+  
+#-Migration-#
+
+migration <- c(DS %>% mutate(migration = ifelse(Month %in% 7:11, 1, 0)) %>% group_by(reps) %>% summarise(migration = max(migration)) %>% select(migration) %>% .$migration,
+            TC %>% mutate(migration = ifelse(month %in% 7:11, 1, 0)) %>% group_by(reps) %>% summarise(migration = max(migration)) %>% select(migration) %>% .$migration)
+
+tmp <- array(0, dim = dim(y))
+
+for(i in 1:dim(tmp)[2]){
+  tmp[,i,9] <- migration
+  tmp[,i,13] <- migration
+  tmp[,i,14] <- migration
+}
+
+migration <- tmp
+
+#-NDVI-#
+
+#-Carnivores-#
+
+#-Livestock-#
+
+#-LULC-#
+
 #--------------#
 #-Compile data-#
 #--------------#
 
 Data <- list(y, dclass, v, B, mdpt, nG, nobs,
              nreps, nstart, nend, nsites, nspec, site, spec,
-             offset)
+             offset, region, migration)
 
 heads <- c("y", "dclass", "v", "B", "mdpt", "nG", "nobs",
            "nreps", "nstart", "nend", "nsites", "nspec", "site", "spec",
-           "offset")
+           "offset", "region", "migration")
            
 Data <- setNames(Data, nm = heads)
 
