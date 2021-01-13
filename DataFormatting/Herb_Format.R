@@ -44,7 +44,7 @@ DS <- filter(DS,
              Animal == "Topi" |
              Animal == "Warthog" |
              Animal == "Waterbuck" |
-             Animal == "Wildebeest" | 
+             Animal == "Wildebeest" |
              Animal == "Zebra" |
              Animal == "Cattle" |
              Animal == "Shoat" |
@@ -57,7 +57,7 @@ DS$Animal <- factor(DS$Animal,
                                "Giraffe", "Grants", "Hartebeest",
                                "Hippo", "Impala", "Thomsons",
                                "Topi", "Warthog", "Waterbuck",
-                               "Wildebeest","Zebra", "Cattle", 
+                               "Wildebeest","Zebra", "Cattle",
                                "Shoat", "Lion", "Hyena", "BlackBackedJackal"))
 
 #Remove incomplete obs
@@ -67,7 +67,7 @@ DS <- DS[-which(is.na(DS$Count)|DS$Count<1),]
 #-Format distance sampling data-#
 #-------------------------------#
 
-#read in DS data 
+#read in DS data
 DSshape <- st_read(dsn = "./Shapefiles", layer = "DS_10kmpersite") #CB
 DSshape <- st_read(dsn = "./RawData/Shapefiles", layer = "DS_10kmpersite") #MTF
 
@@ -77,7 +77,7 @@ DS <- st_as_sf(DS, coords = c("AdjEasting", "AdjNorthing"), crs = st_crs(DSshape
 #create distance matrix
 ds_matrix <- st_distance(DS, DSshape)
 
-#assign transect to each observation 
+#assign transect to each observation
 DS$site <- apply(ds_matrix, 1, which.min)
 
 #add corrected distances
@@ -106,9 +106,9 @@ dst <- DS$dst
 
 for(i in 1:nobs[1]){
   for(k in 1:nG){
-    if(di[k] < dst[i] && dst[i] <= di[k+1]) #why the k+1 argument? 
+    if(di[k] < dst[i] && dst[i] <= di[k+1]) #why the k+1 argument?
       dclass[i] <- k
-    
+
   }
 }
 
@@ -155,7 +155,7 @@ TC <- filter(TC,
                Animal == "topi" |
                Animal == "warthog" |
                Animal == "waterbuck" |
-               Animal == "wildebeest" | 
+               Animal == "wildebeest" |
                Animal == "zebra" |
                Animal == "cow" |
                Animal == "shoat" |
@@ -243,7 +243,7 @@ nspec <- 14
 #observation array
 y <- array(NA, dim = c(sum(nreps), sum(nsites), nspec))
 
-#set distance sampling counts to 0 as sampling always occuried 
+#set distance sampling counts to 0 as sampling always occuried
 y[1:nreps[1],1:nsites[1],] <- 0
 
 for(i in 1:dim(DS)[1]){
@@ -286,7 +286,7 @@ B <- 1000 #meters
 mdpt <- seq(v/2, B, v)
 
 #---------------------------------#
-#-Area offset for transect length-# 
+#-Area offset for transect length-#
 #---------------------------------#
 
 #area of transects (m^2)
@@ -303,7 +303,7 @@ offset <- area/1E6
 
 region <- c(DS %>% group_by(site) %>% summarize(region = max(Territory)) %>% mutate(region = ifelse(region == "West", 1, 0)) %>% select(region) %>% .$region,
             TC %>% group_by(site) %>% summarize(region = unique(transect)) %>% mutate(region = ifelse(region == "W3"|region == "WHIGH"|region == "WLOW", 1, 0)) %>% select(region) %>% .$region)
-  
+
 #-Migration-#
 
 migration <- c(DS %>% mutate(migration = ifelse(Month %in% 7:11, 1, 0)) %>% group_by(reps) %>% summarise(migration = max(migration)) %>% select(migration) %>% .$migration,
@@ -334,7 +334,7 @@ Data <- list(y, dclass, v, B, mdpt, nG, nobs,
 heads <- c("y", "dclass", "v", "B", "mdpt", "nG", "nobs",
            "nreps", "nstart", "nend", "nsites", "nspec", "site", "spec",
            "offset", "region", "migration")
-           
+
 Data <- setNames(Data, nm = heads)
 
 #-------------#
@@ -342,4 +342,3 @@ Data <- setNames(Data, nm = heads)
 #-------------#
 
 save(Data, file = "./DataFormatting/FormattedData.Rdata")
-
