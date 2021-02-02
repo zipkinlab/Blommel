@@ -9,12 +9,12 @@ library(tidyverse)
 #-Load data-#
 #-----------#
 
-#setwd("Z:/Blommel")
+setwd("Z:/Blommel")
 
 pattern <- "chain"
 
-#files <- list.files(path = "./DataAnalysis", pattern = pattern, full.names = TRUE)
-files <- list.files(path = "~/Blommel/DataAnalysis", pattern = pattern, full.names = TRUE)
+files <- list.files(path = "./DataAnalysis", pattern = pattern, full.names = TRUE)
+#files <- list.files(path = "~/Blommel/DataAnalysis", pattern = pattern, full.names = TRUE)
 
 nc <- length(files)
 
