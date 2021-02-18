@@ -181,7 +181,7 @@ constants <- list(nG = nG, v = v, B = B, mdpt = mdpt, nobs = nobs,
                   site = site, spec = spec, offset = offset, region = region,
                   migration = migration)
 
-data <- list(nD = nD, v = v, site = site[spec == 8], rep = rep[spec == 8],
+data <- list(nG = nG, v = v, site = site[spec == 8], rep = rep[spec == 8],
              y = y[,,8], B = B, mdpt = mdpt, nobs = 3003, dclass = dclass[spec == 8], nsites = nsites,
              nreps = nreps, gs = gs[spec == 8], offset = offset, NDVI = NDVI)
 
