@@ -2,6 +2,10 @@
 #----Hierarchical Community Distance Sampling----#
 #------------------------------------------------#
 
+#---------------------------------#
+#-Single Species Integrated Model-#
+#---------------------------------#
+
 #----------------#
 #-Load Libraries-#
 #----------------#
@@ -21,130 +25,148 @@ load(file = "../DataFormatting/FormattedData.Rdata")
 
 model.code <- nimbleCode({
 
-#--------#
-#-PRIORS-#
-#--------#
+  #--------#
+  #-PRIORS-#
+  #--------#
 
-#Overdispersion
-r.N ~ dunif(0,10) 
+  #Gamma1
+  gamma1 ~ dnorm(0, 0.1)
 
-#Psi
-# tau_p[s] ~ dgamma(0.1, 0.1)  #Precision
-# sig_p[s] <- 1/sqrt(tau_p[s]) #Variance
 
-#Sigma
-gamma0 ~ dnorm(0, 0.01)  #Intercept parameter
-gamma1 ~ dnorm(0, 0.01)
+  #Overdispersion
+  r.N ~ dunif(0,10)            #Number of groups
+  omega ~ dunif(0, 1)
+  #tau <- dgamma(0.1,0.1) #ZIF overdispersion
 
-#Expected Number of Groups
-alpha0 ~ dnorm(0, 0.01)    #Intercept parameter
-alpha1 ~ dnorm(0, 0.01)    #Effect of region
-alpha2 ~ dnorm(0, 0.01)    #Effect of migration
 
-#------------#
-#-LIKELIHOOD-#
-#------------#
+  #Psi
+  # tau_p[s] ~ dgamma(0.1, 0.1)  #Precision
+  # sig_p[s] <- 1/sqrt(tau_p[s]) #Variance
 
-#-------------------#
-#-Distance sampling-#
-#-------------------#
+  #Sigma
+  gamma0 ~ dnorm(0, 0.01)  #Intercept parameter
 
-for(j in 1:nsites[1]){
+  #Expected Number of Groups
+  alpha0 ~ dnorm(0, 0.01)    #Intercept parameter
+  alpha1 ~ dnorm(0, 0.01)    #Effect of region
+  alpah2 ~ dnorm(0, 0.01)    #Effect of migration
 
-# psi[j,s] ~ dnorm(0, tau_p[s])       #Transect effect parameter
+  #------------#
+  #-LIKELIHOOD-#
+  #------------#
 
-#Scale parameter
-sigma[j] <- exp(gamma0 + gamma1 * region[j])
+  #-------------------#
+  #-Distance sampling-#
+  #-------------------#
 
-#Construct cell probabilities for nG cells using numerical integration
-#Sum of the area (rectangles) under the detection function
+  for(j in 1:nsites[1]){
 
-for(k in 1:nG){
+    # psi[j,s] ~ dnorm(0, tau_p[s])       #Transect effect parameter
 
-#Half normal detection function at midpt (length of rectangle)
-g[k,j] <- exp(-mdpt[k]*mdpt[k]/(2*sigma[j]*sigma[j]))
+    #Scale parameter
+    sigma[j] <- exp(gamma0 + gamma1 * region[j])
 
-#Detection probability for each distance class k (area of each rectangle)
-f[k,j] <- g[k,j] * v/B
+    #Construct cell probabilities for nG cells using numerical integration
+    #Sum of the area (rectangles) under the detection function
 
-#Conditional detection probability (scale to 1)
-fc[k,j] <- f[k,j]/pcap[j]
+    for(k in 1:nG){
 
-}#end k loop
+      #Half normal detection function at midpt (length of rectangle)
+      g[k,j] <- exp(-mdpt[k]*mdpt[k]/(2*sigma[j]*sigma[j]))
 
-#Detection probability at each transect (sum of rectangles)
-pcap[j] <- sum(f[1:nG,j])
+      #Detection probability for each distance class k (area of each rectangle)
+      f[k,j] <- g[k,j] * v/B
 
-for(t in nstart[j]:nend[j]){
+      #Conditional detection probability (scale to 1)
+      fc[k,j] <- f[k,j]/pcap[j]
 
-#Observed population @ each t,j,s (N-mixture)
-y[t,j] ~ dbin(pcap[j], N[t,j])
+    }#end k loop
 
-#Latent Number of Groups @ each t,j,s (negative binomial)
-N[t,j] ~ dpois(lambda.star[t,j])
+    #Detection probability at each transect (sum of rectangles)
+    pcap[j] <- sum(f[1:nG,j])
 
-#Expected Number of Groups
-lambda.star[t,j] <- rho[t,j] * lambda[t,j]
+    for(t in nstart[j]:nend[j]){
 
-#Overdispersion parameter for Expected Number of Groups
-rho[t,j] ~ dgamma(r.N, r.N)
+      #Observed population @ each t,j (N-mixture)
+      y[t,j] ~ dbin(pcap[j], N[t,j])
 
-#Linear predictor for Expected Number of Groups
-lambda[t,j] <- exp(alpha0 + alpha1 * region[j] + alpha2 * migration[t] + log(offset[j])) # + psi[j,s])
+      #Latent Number of Groups @ each t,j
+      #Zero inflated negative binomial (poisson-gamma mixture)
+      N[t,j] ~ dpois(lambda.star[t,j])
 
-}#end t loop distance sampling
+      #Expected Number of Groups
+      # lambda.star[t,j,s] <- rho[t,j,s] * lambda[t,j,s]
+      lambda.star[t,j] <- z[t,j] * lambda[t,j] * rho[t,j]
+      #zero inflated component
+      z[t,j] ~ dbern(omega)
 
-}#end j loop distance sampling
+      #Overdispersion parameter for Expected Number of Groups
+      rho[t,j] ~ dgamma(r.N, r.N)
 
-#-----------------#
-#-Transect counts-#
-#-----------------#
+      #Linear predictor for Expected Number of Groups
+      lambda[t,j] <- exp(alpha0 + alpha1 * region[j] + alpha2 * migration[t] + log(offset[j])) #est[j,s] # + psi[j,s])
+      #ZIF over dispersion parameter
+      #est[t,j] <- dnorm(0,tau)
 
-for(j in (nsites[1] + 1):(nsites[1] + nsites[2])){
+    }#end t loop distance sampling
 
-#Scale parameter
-sigma.new[j] <- exp(gamma0 + gamma1 * region[j])
+  }#end j loop distance sampling
 
-for(k in 1:8){
+  #-----------------#
+  #-Transect counts-#
+  #-----------------#
 
-#Half normal detection function at midpt (length of rectangle)
-g[k,j] <- exp(-mdpt[k]*mdpt[k]/(2*sigma.new[j]*sigma.new[j]))
+  for(j in (nsites[1] + 1):(nsites[1] + nsites[2])){
 
-#Detection probability for each distance class k (area of each rectangle)
-f[k,j] <- g[k,j] * v/B
+    # psi[j,s] ~ dnorm(0, tau_p[s])       #Transect effect parameter
 
-}#end k loop
+    #Scale parameter
+    sigma.new[j] <- exp(gamma0 + gamma1 * region[j])
 
-#Detection probability at each transect (sum of rectangles)
-pdet[j] <- sum(f[1:8,j])
+    for(k in 1:8){
 
-for(t in nstart[j]:nend[j]){
+      #Half normal detection function at midpt (length of rectangle)
+      g[k,j] <- exp(-mdpt[k]*mdpt[k]/(2*sigma.new[j]*sigma.new[j]))
 
-#Observed population @ each t,j,s (Transect counts)
-y[t,j] ~ dbin(pdet[j], N[t,j])
+      #Detection probability for each distance class k (area of each rectangle)
+      f[k,j] <- g[k,j] * v/B
 
-#Latent Number of Groups @ each t,j,s (negative binomial)
-N[t,j] ~ dpois(lambda.star[t,j])
+    }#end k loop
 
-#Expected Number of Groups
-lambda.star[t,j] <- rho[t,j] * lambda[t,j]
+    #Detection probability at each transect (sum of rectangles)
+    pdet[j] <- sum(f[1:8,j])
 
-#Overdispersion parameter for Expected Number of Groups
-rho[t,j] ~ dgamma(r.N, r.N)
+    for(t in nstart[j]:nend[j]){
 
-#Linear predictor for Expected Number of Groups
-lambda[t,j] <- exp(alpha0 + alpha1 * region[j] + alpha2 * migration[t] + log(offset[j]))
+      #Observed population @ each t,j,s (Transect counts)
+      y[t,j] ~ dbin(pdet[j], N[t,j])
 
-}#end t loop transect counts
+      #Latent Number of Groups @ each t,j,s (negative binomial)
+      N[t,j] ~ dpois(lambda.star[t,j])
 
-}#end j loop transect counts
+      #Expected Number of Groups
+      # lambda.star[t,j,s] <- rho[t,j,s] * lambda[t,j,s]
+      lambda.star[t,j] <- z[t,j] * lambda[t,j]
+      z[t,j] ~ dbern(omega)
 
-for(i in 1:nobs){
+      #Overdispersion parameter for Expected Number of Groups
+      # rho[t,j,s] ~ dgamma(r.N, r.N)
 
-#Observed distance classes
-dclass[i] ~ dcat(fc[1:nG, site[i]])
+      #Linear predictor for Expected Number of Groups
+      lambda[t,j] <- exp(alpha0 + alpha1 * region[j] + alpha2 * migration[t] + log(offset[j])) # + psi[j,s])
 
-}#end i loop
+    }#end t loop transect counts
+
+  }#end j loop transect counts
+
+
+
+  for(i in 1:nobs){
+
+    #Observed distance classes
+    dclass[i] ~ dcat(fc[1:nG, site[i]])
+
+  }#end i loop
 
 })
 
@@ -154,39 +176,49 @@ dclass[i] ~ dcat(fc[1:nG, site[i]])
 
 attach(Data)
 
-#MTF: for each species, reset nobs, site, y, dclass
-
-constants <- list(nG = nG, v = v, B = B, mdpt = mdpt, nobs = sum(spec==1),
-                  nstart = nstart, nend = nend, nsites = nsites,
-                  site = site[spec == 1], offset = offset, region = region,
+constants <- list(nG = nG, v = v, B = B, mdpt = mdpt, nobs = nobs,
+                  nstart = nstart, nend = nend, nsites = nsites, nspec = nspec,
+                  site = site, spec = spec, offset = offset, region = region,
                   migration = migration)
 
-data <- list(y = y[,,1], dclass = dclass[spec == 1])
+data <- list(nG = nG, v = v, site = site[spec == 8], rep = rep[spec == 8],
+             y = y[,,8], B = B, mdpt = mdpt, nobs = 3003, dclass = dclass[spec == 8], nsites = nsites,
+             nreps = nreps, gs = gs[spec == 8], offset = offset, NDVI = NDVI)
+
+#data <- list(y = y, dclass = dclass)
 
 #----------------#
 #-Initial values-#
 #----------------#
 
-#MTF: update for each species
+Nst <- y + 1
 
-Nst <- y[,,1] + 1
+
+alpha0 <- function(){
+  alpha0 <- c(runif(1,2,3), runif(1,-0.5,0.5), runif(1,1.5,2.5), runif(1,1.5,2.5), runif(1,-1,0), runif(1,-0.5,0.5), runif(1,-0.5,0.5),
+              runif(1,2,3), runif(1,2,3), runif(1,3,4), runif(1,3,4), runif(1,-0.5,0.5), runif(1,2,3), runif(1,3,4))
+  return(alpha0)
+}
 
 #---------------#
 #-Inital values-#
 #---------------#
 
-inits <- function(){list(gamma0 = runif(1, 2, 6), gamma1 = runif(1, -1, 1),
-                         alpha0 = runif(1, 0, 4), alpha1 = runif(1, -1, 1), alpha2 = runif(1, -1, 1),
-                         r.N = runif(1, 1, 2), 
-                         N = Nst)}
+inits <- function(){list(
+  gamma0 = runif(nspec, 4.75, 6), gamma1 = runif(1, -1, 1),
+  alpha0 = alpha0(),
+  alpha1 = runif(nspec, -1, 1),
+  alpha2 = runif(nspec, -1, 1),
+  # r.N = runif(1, 1, 2), tau_p = runif(nspec, 0, 10),
+  omega = runif(1, 0, 1),
+  N = Nst)}
 
 #--------------------#
 #-Parameters to save-#
 #--------------------#
 
-params <- c('gamma0', 'gamma1',
-            'alpha0', 'alpha1', 'alpha2',
-            'r.N')
+params <- c('gamma0', 'gamma1', 'alpha0', 'alpha1', 'alpha2', 'omega')
+# 'r.N', 'tau_p')
 
 #---------------#
 #-MCMC settings-#
@@ -195,14 +227,6 @@ params <- c('gamma0', 'gamma1',
 model <- nimbleModel(model.code, constants = constants, data = data, inits = inits())
 
 MCMCconf <- configureMCMC(model, monitors = params)
-
-MCMCconf$removeSampler(c("alpha0", "alpha1", "alpha2"))
-
-MCMCconf$addSampler(target = c("alpha0", "alpha1", "alpha2"), type = "AF_slice")
-
-MCMCconf$removeSampler(c("gamma0", "gamma1"))
-
-MCMCconf$addSampler(target = c("gamma0", "gamma1"), type = "AF_slice")
 
 MCMC <- buildMCMC(MCMCconf)
 
@@ -219,6 +243,6 @@ out <- runMCMC(model.comp$MCMC, niter = ni, nburnin = nb, nchains = nc, thin = n
 #-Save output-#
 #-------------#
 
-ID <- paste("spec1_chain", length(list.files(pattern = "spec1_chain", full.names = FALSE)) + 1, sep="")
+ID <- paste("Spec8chain", length(list.files(pattern = "Spec8chain", full.names = FALSE)) + 1, sep="")
 assign(ID, out)
 save(list = ID, file = paste0(ID, ".Rds"))
