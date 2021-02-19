@@ -75,25 +75,6 @@ model.code <- nimbleCode({
     #Detection probability at each transect (sum of rectangles)
     pcap[j] <- sum(f[1:nG,j])
     
-    for(t in nstart[j]:nend[j]){
-      
-      #Observed population @ each t,j,s (N-mixture)
-      y[t,j] ~ dbin(pcap[j], N[t,j])
-      
-      #Latent Number of Groups @ each t,j,s (negative binomial)
-      N[t,j] ~ dpois(lambda.star[t,j])
-      
-      #Expected Number of Groups
-      lambda.star[t,j] <- rho[t,j] * lambda[t,j]
-      
-      #Overdispersion parameter for Expected Number of Groups
-      rho[t,j] ~ dgamma(r.N, r.N)
-      
-      #Linear predictor for Expected Number of Groups
-      lambda[t,j] <- exp(alpha0 + alpha1 * region[j] + alpha2 * migration[t] + log(offset[j])) # + psi[j,s])
-      
-    }#end t loop distance sampling
-    
   }#end j loop distance sampling
   
   #-----------------#
