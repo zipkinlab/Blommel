@@ -96,49 +96,6 @@ model.code <- nimbleCode({
     
   }#end j loop distance sampling
   
-  #-----------------#
-  #-Transect counts-#
-  #-----------------#
-  
-  for(j in (nsites[1] + 1):(nsites[1] + nsites[2])){
-    
-    #Scale parameter
-    sigma.new[j] <- exp(gamma0 + gamma1 * region[j])
-    
-    for(k in 1:8){
-      
-      #Half normal detection function at midpt (length of rectangle)
-      g[k,j] <- exp(-mdpt[k]*mdpt[k]/(2*sigma.new[j]*sigma.new[j]))
-      
-      #Detection probability for each distance class k (area of each rectangle)
-      f[k,j] <- g[k,j] * v/B
-      
-    }#end k loop
-    
-    #Detection probability at each transect (sum of rectangles)
-    pdet[j] <- sum(f[1:8,j])
-    
-    for(t in nstart[j]:nend[j]){
-      
-      #Observed population @ each t,j,s (Transect counts)
-      y[t,j] ~ dbin(pdet[j], N[t,j])
-      
-      #Latent Number of Groups @ each t,j,s (negative binomial)
-      N[t,j] ~ dpois(lambda.star[t,j])
-      
-      #Expected Number of Groups
-      lambda.star[t,j] <- rho[t,j] * lambda[t,j]
-      
-      #Overdispersion parameter for Expected Number of Groups
-      rho[t,j] ~ dgamma(r.N, r.N)
-      
-      #Linear predictor for Expected Number of Groups
-      lambda[t,j] <- exp(alpha0 + alpha1 * region[j] + alpha2 * migration[t] + log(offset[j]))
-      
-    }#end t loop transect counts
-    
-  }#end j loop transect counts
-  
   for(i in 1:nobs){
     
     #Observed distance classes
