@@ -34,11 +34,12 @@ r.N ~ dunif(0,10)
 
 #Sigma
 gamma0 ~ dnorm(0, 0.01)  #Intercept parameter
+gamma1 ~ dnorm(0, 0.01)
 
 #Expected Number of Groups
 alpha0 ~ dnorm(0, 0.01)    #Intercept parameter
 alpha1 ~ dnorm(0, 0.01)    #Effect of region
-alpah2 ~ dnorm(0, 0.01)    #Effect of migration
+alpha2 ~ dnorm(0, 0.01)    #Effect of migration
 
 #------------#
 #-LIKELIHOOD-#
@@ -61,7 +62,7 @@ sigma[j] <- exp(gamma0 + gamma1 * region[j])
 for(k in 1:nG){
 
 #Half normal detection function at midpt (length of rectangle)
-g[k,j] <- exp(-mdpt[k]*mdpt[k]/(2*sigma[j,s]*sigma[j,s]))
+g[k,j] <- exp(-mdpt[k]*mdpt[k]/(2*sigma[j]*sigma[j]))
 
 #Detection probability for each distance class k (area of each rectangle)
 f[k,j] <- g[k,j] * v/B
@@ -77,7 +78,7 @@ pcap[j] <- sum(f[1:nG,j])
 for(t in nstart[j]:nend[j]){
 
 #Observed population @ each t,j,s (N-mixture)
-y[t,j] ~ dbin(pcap[j,s], N[t,j])
+y[t,j] ~ dbin(pcap[j], N[t,j])
 
 #Latent Number of Groups @ each t,j,s (negative binomial)
 N[t,j] ~ dpois(lambda.star[t,j])
