@@ -161,7 +161,7 @@ constants <- list(nG = nG, v = v, B = B, mdpt = mdpt, nobs = sum(spec==2),
                   site = site[spec == 2], offset = offset, region = region,
                   migration = migration)
 
-data <- list(y = y[,,1], dclass = dclass[spec == 2])
+data <- list(y = y[,,2], dclass = dclass[spec == 2])
 
 #----------------#
 #-Initial values-#
