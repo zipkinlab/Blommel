@@ -113,12 +113,12 @@ attach(Data)
 
 #MTF: for each species, reset nobs, site, y, dclass
 
-constants <- list(nG = nG, v = v, B = B, mdpt = mdpt, nobs = sum(spec==3),
+constants <- list(nG = nG, v = v, B = B, mdpt = mdpt, nobs = sum(spec==8),
                   nstart = nstart, nend = nend, nsites = nsites,
-                  site = site[spec == 3], offset = offset, region = region,
+                  site = site[spec == 8], offset = offset, region = region,
                   migration = migration)
 
-data <- list(y = y[,,3], dclass = dclass[spec == 3])
+data <- list(y = y[,,8], dclass = dclass[spec == 8])
 
 #----------------#
 #-Initial values-#
@@ -126,7 +126,7 @@ data <- list(y = y[,,3], dclass = dclass[spec == 3])
 
 #MTF: update for each species
 
-Nst <- y[,,3] + 1
+Nst <- y[,,8] + 1
 
 #---------------#
 #-Inital values-#
@@ -176,6 +176,6 @@ out <- runMCMC(model.comp$MCMC, niter = ni, nburnin = nb, nchains = nc, thin = n
 #-Save output-#
 #-------------#
 
-ID <- paste("spec3_chain", length(list.files(pattern = "spec3_chain", full.names = FALSE)) + 1, sep="")
+ID <- paste("spec8_chain", length(list.files(pattern = "spec8_chain", full.names = FALSE)) + 1, sep="")
 assign(ID, out)
 save(list = ID, file = paste0(ID, ".Rds"))
