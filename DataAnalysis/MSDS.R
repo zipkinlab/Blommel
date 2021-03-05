@@ -189,8 +189,8 @@ model.code <- nimbleCode({
 attach(Data)
 
 constants <- list(nG = nG, v = v, B = B, mdpt = mdpt, nobs = nobs,
-                  nstart = nstart, nend = nend, nsites = nsites, nspec = nspec,
-                  site = site[spec == c(3,4,5,6,11)], spec = spec, offset = offset, region = region,
+                  nstart = nstart, nend = nend, nsites = nsites, nspec = 5,
+                  site = site[spec == c(3,4,5,6,11)], spec = spec[spec == c(3,4,5,6,11)], offset = offset, region = region,
                   migration = migration)
 
 data <- list(y = y[,,c(3,4,5,6,11)], dclass = dclass[spec == c(3,4,5,6,11)])
