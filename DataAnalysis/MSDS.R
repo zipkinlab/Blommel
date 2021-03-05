@@ -8,7 +8,7 @@
 
 library(nimble)
 library(coda)
-#branch test
+#git test
 
 #-----------#
 #-Load Data-#
