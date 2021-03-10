@@ -12,7 +12,7 @@ library(MCMCvis)
 
 #setwd("Z:/Blommel")
 
-pattern <- "chain"
+pattern <- "spec10_chain"
 
 files <- list.files(path = "./DataAnalysis", pattern = pattern, full.names = TRUE)
 #files <- list.files(path = "~/Blommel/DataAnalysis", pattern = pattern, full.names = TRUE)
