@@ -4,6 +4,7 @@
 
 library(coda)
 library(tidyverse)
+library(MCMCvis)
 
 #-----------#
 #-Load data-#
@@ -13,8 +14,8 @@ library(tidyverse)
 
 pattern <- "chain"
 
-#files <- list.files(path = "./DataAnalysis", pattern = pattern, full.names = TRUE)
-files <- list.files(path = "~/Blommel/DataAnalysis", pattern = pattern, full.names = TRUE)
+files <- list.files(path = "./DataAnalysis", pattern = pattern, full.names = TRUE)
+#files <- list.files(path = "~/Blommel/DataAnalysis", pattern = pattern, full.names = TRUE)
 
 nc <- length(files)
 
@@ -39,3 +40,5 @@ if(all(Rhat[[1]][,1] < 1.1)){
   print(params[tmp])
   traceplot(out[c(1:nc)][,params[tmp]])
 }
+
+MCMCsummary(out)
