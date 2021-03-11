@@ -1,0 +1,60 @@
+Fatal error: you must specify '--save', '--no-save' or '--vanilla'
+nimble version 0.8.0 is loaded.
+For more information on NIMBLE and a User Manual,
+please visit http://R-nimble.org.
+
+Attaching package: ‘nimble’
+
+The following object is masked from ‘package:stats’:
+
+    simulate
+
+Warning messages:
+1: In spec == c(3, 4, 5, 6, 11) :
+  longer object length is not a multiple of shorter object length
+2: In spec == c(3, 4, 5, 6, 11) :
+  longer object length is not a multiple of shorter object length
+Warning message:
+In spec == c(3, 4, 5, 6, 11) :
+  longer object length is not a multiple of shorter object length
+defining model...
+Error in if (any(sapply(varInfo, function(x) length(x$mins) && length(x$maxs) &&  : 
+  missing value where TRUE/FALSE needed
+Calls: nimbleModel -> <Anonymous> -> genVarInfo3
+Execution halted
+squeue: error: Unrecognized option: 17005591
+Usage: squeue [-A account] [--clusters names] [-i seconds] [--job jobid]
+              [-n name] [-o format] [-p partitions] [--qos qos]
+              [--reservation reservation] [--sort fields] [--start]
+              [--step step_id] [-t states] [-u user_name] [--usage]
+              [-L licenses] [-w nodes] [--federation] [--local] [--sibling]
+	      [-ahjlrsv]
+JobId=17005591 JobName=run.sb
+   UserId=blommelc(855560) GroupId=plb(2022) MCS_label=N/A
+   Priority=56424 Nice=0 Account=general QOS=blommelc
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:20 TimeLimit=10:00:00 TimeMin=N/A
+   SubmitTime=2021-03-10T12:56:51 EligibleTime=2021-03-10T12:56:51
+   AccrueTime=2021-03-10T12:56:51
+   StartTime=2021-03-10T12:56:52 EndTime=2021-03-10T22:56:52 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2021-03-10T12:56:52
+   Partition=general-long AllocNode:Sid=dev-intel14.i:1012
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=lac-232
+   BatchHost=lac-232
+   NumNodes=1 NumCPUs=1 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=1,mem=20G,node=1,billing=3112
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=20G MinTmpDiskNode=0
+   Features=[intel14|intel16|intel18|amr|nvf] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/mnt/ufs18/home-025/blommelc/Blommel/DataAnalysis/run.sb
+   WorkDir=/mnt/ufs18/home-025/blommelc/Blommel/DataAnalysis
+   Comment=stdout=/mnt/ufs18/home-025/blommelc/Blommel/DataAnalysis/slurm-17005591.out 
+   StdErr=/mnt/ufs18/home-025/blommelc/Blommel/DataAnalysis/slurm-17005591.out
+   StdIn=/dev/null
+   StdOut=/mnt/ufs18/home-025/blommelc/Blommel/DataAnalysis/slurm-17005591.out
+   Power=
+   NtasksPerTRES:0
+
