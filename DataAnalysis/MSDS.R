@@ -29,8 +29,8 @@ model.code <- nimbleCode({
   r.N ~ dunif(0,10) 
   
   #Psi
-  # tau_p[s] ~ dgamma(0.1, 0.1)  #Precision
-  # sig_p[s] <- 1/sqrt(tau_p[s]) #Variance
+  tau_p ~ dgamma(0.1, 0.1)  #Precision
+  sig_p <- 1/sqrt(tau_p) #Variance
   
   #Sigma
   gamma0 ~ dnorm(0, 0.01)  #Intercept parameter
@@ -51,7 +51,7 @@ model.code <- nimbleCode({
   
   for(j in 1:nsites[1]){
     
-    # psi[j,s] ~ dnorm(0, tau_p[s])       #Transect effect parameter
+    psi[j] ~ dnorm(0, tau_p)       #Transect effect parameter
     
     #Scale parameter
     sigma[j] <- exp(gamma0 + gamma1 * region[j])
@@ -90,7 +90,7 @@ model.code <- nimbleCode({
       rho[t,j] ~ dgamma(r.N, r.N)
       
       #Linear predictor for Expected Number of Groups
-      lambda[t,j] <- exp(alpha0 + alpha1 * region[j] + alpha2 * migration[t] + log(offset[j])) # + psi[j,s])
+      lambda[t,j] <- exp(alpha0 + alpha1 * region[j] + alpha2 * migration[t] + log(offset[j]) + psi[j])
       
     }#end t loop distance sampling
     
@@ -133,7 +133,7 @@ model.code <- nimbleCode({
       rho[t,j] ~ dgamma(r.N, r.N)
       
       #Linear predictor for Expected Number of Groups
-      lambda[t,j] <- exp(alpha0 + alpha1 * region[j] + alpha2 * migration[t] + log(offset[j]))
+      lambda[t,j] <- exp(alpha0 + alpha1 * region[j] + alpha2 * migration[t] + log(offset[j]) + psi[j])
       
     }#end t loop transect counts
     
@@ -156,12 +156,12 @@ attach(Data)
 
 #MTF: for each species, reset nobs, site, y, dclass
 
-constants <- list(nG = nG, v = v, B = B, mdpt = mdpt, nobs = sum(spec==14),
+constants <- list(nG = nG, v = v, B = B, mdpt = mdpt, nobs = sum(spec==8),
                   nstart = nstart, nend = nend, nsites = nsites,
-                  site = site[spec == 14], offset = offset, region = region,
+                  site = site[spec == 8], offset = offset, region = region,
                   migration = migration)
 
-data <- list(y = y[,,14], dclass = dclass[spec == 14])
+data <- list(y = y[,,8], dclass = dclass[spec == 8])
 
 #----------------#
 #-Initial values-#
@@ -169,7 +169,7 @@ data <- list(y = y[,,14], dclass = dclass[spec == 14])
 
 #MTF: update for each species
 
-Nst <- y[,,14] + 1
+Nst <- y[,,8] + 1
 
 #---------------#
 #-Inital values-#
@@ -177,7 +177,7 @@ Nst <- y[,,14] + 1
 
 inits <- function(){list(gamma0 = runif(1, 2, 6), gamma1 = runif(1, -1, 1),
                          alpha0 = runif(1, 0, 4), alpha1 = runif(1, -1, 1), alpha2 = runif(1, -1, 1),
-                         r.N = runif(1, 1, 2), 
+                         r.N = runif(1, 1, 2), tau_p = runif(1, 0, 1),
                          N = Nst)}
 
 #--------------------#
@@ -219,6 +219,6 @@ out <- runMCMC(model.comp$MCMC, niter = ni, nburnin = nb, nchains = nc, thin = n
 #-Save output-#
 #-------------#
 
-ID <- paste("spec14_chain", length(list.files(pattern = "spec14_chain", full.names = FALSE)) + 1, sep="")
+ID <- paste("spec8_chain", length(list.files(pattern = "spec8_chain", full.names = FALSE)) + 1, sep="")
 assign(ID, out)
 save(list = ID, file = paste0(ID, ".Rds"))
