@@ -9,12 +9,12 @@ library(tidyverse)
 #-Load data-#
 #-----------#
 
-#setwd("Z:/Blommel")
+setwd("Z:/Blommel")
 
 pattern <- "spec1_chain"
 
-#files <- list.files(path = "./DataAnalysis", pattern = pattern, full.names = TRUE)
-files <- list.files(path = "~/Blommel/DataAnalysis", pattern = pattern, full.names = TRUE)
+files <- list.files(path = "./DataAnalysis", pattern = pattern, full.names = TRUE)
+#files <- list.files(path = "~/Blommel/DataAnalysis", pattern = pattern, full.names = TRUE)
 
 nc <- length(files)
 
@@ -24,13 +24,19 @@ for(i in 1:nc){
 
 out <- mcmc.list(mget(paste0(pattern, 1:nc)))
 
+
 #-------------#
 #-Convergence-#
 #-------------#
 
 params <- attr(out[[1]], "dimnames")[[2]]
 
-Rhat <- gelman.diag(out[c(1:nc)][,params])
+params
+
+Rhat <- gelman.diag(out[c(1:nc)][,params[5]])
+
+
+
 if(all(Rhat[[1]][,1] < 1.1)){
   print("Converged")
 }else{
@@ -39,3 +45,7 @@ if(all(Rhat[[1]][,1] < 1.1)){
   print(params[tmp])
   traceplot(out[c(1:nc)][,params[tmp]])
 }
+
+traceplot(out[c(1:nc)][,params[2]])
+
+
