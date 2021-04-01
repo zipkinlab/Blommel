@@ -189,12 +189,14 @@ model.code <- nimbleCode({
 
 attach(Data)
 
-constants <- list(nG = nG, v = v, B = B, mdpt = mdpt, nobs = sum(spec == c(3,4,5,6,11)),
+Data$dclass
+
+constants <- list(nG = nG, v = v, B = B, mdpt = mdpt, nobs = sum(spec[c(3,4,5,6,11)]),
                   nstart = nstart, nend = nend, nsites = nsites, nspec = 5,
-                  site = site[spec == c(3,4,5,6,11)], spec = spec[c(3,4,5,6,11)], offset = offset, region = region,
+                  site = site[spec[c(3,4,5,6,11)]], spec = spec[c(3,4,5,6,11)], offset = offset, region = region,
                   migration = migration)
 
-data <- list(y = y[,,c(3,4,5,6,11)], dclass = dclass[spec == c(3,4,5,6,11)])
+data <- list(y = y[,,c(3,4,5,6,11)], dclass = dclass[spec[c(3,4,5,6,11)]])
 
 #----------------#
 #-Initial values-#
@@ -243,19 +245,16 @@ MCMCconf <- configureMCMC(model, monitors = params)
 
 MCMCconf$removeSampler(c("alpha0", "alpha1", "alpha2"))
 
-MCMCconf$addSampler(target = c("alpha0[1]", "alpha0[2]", "alpha0[3]", "alpha0[4]", "alpha0[5]",
-                               "alpha0[6]", "alpha0[7]", "alpha0[8]", "alpha0[9]", "alpha0[10]",
-                               "alpha0[11]", "alpha0[12]", "alpha0[13]", "alpha0[14]"),
+MCMCconf$addSampler(target = c("alpha0[3]", "alpha0[4]", "alpha0[5]",
+                               "alpha0[6]", "alpha0[11]"),
                     type = "RW_block")
 
-MCMCconf$addSampler(target = c("alpha1[1]", "alpha1[2]", "alpha1[3]", "alpha1[4]", "alpha1[5]",
-                               "alpha1[6]", "alpha1[7]", "alpha1[8]", "alpha1[9]", "alpha1[10]",
-                               "alpha1[11]", "alpha1[12]", "alpha1[13]", "alpha1[14]"),
+MCMCconf$addSampler(target = c("alpha0[3]", "alpha0[4]", "alpha0[5]",
+                               "alpha0[6]", "alpha0[11]"),
                     type = "RW_block")
 
-MCMCconf$addSampler(target = c("alpha2[1]", "alpha2[2]", "alpha2[3]", "alpha2[4]", "alpha2[5]",
-                               "alpha2[6]", "alpha2[7]", "alpha2[8]", "alpha2[9]", "alpha2[10]",
-                               "alpha2[11]", "alpha2[12]", "alpha2[13]", "alpha2[14]"),
+MCMCconf$addSampler(target = c("alpha0[3]", "alpha0[4]", "alpha0[5]",
+                               "alpha0[6]", "alpha0[11]"),
                     type = "RW_block")
 
 nFun <- function(node, s){
