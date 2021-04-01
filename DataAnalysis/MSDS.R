@@ -28,9 +28,9 @@ model.code <- nimbleCode({
   #Overdispersion
   r.N ~ dunif(0,10) 
   
-  #Psi
-  tau_p ~ dgamma(0.1, 0.1)  #Precision
-  sig_p <- 1/sqrt(tau_p) #Variance
+  #Psi - transect effect 
+  #tau_p ~ dgamma(0.1, 0.1)  #Precision
+  #sig_p <- 1/sqrt(tau_p) #Variance
   
   #Sigma
   gamma0 ~ dnorm(0, 0.01)  #Intercept parameter
@@ -90,7 +90,7 @@ model.code <- nimbleCode({
       rho[t,j] ~ dgamma(r.N, r.N)
       
       #Linear predictor for Expected Number of Groups
-      lambda[t,j] <- exp(alpha0 + alpha1 * region[j] + alpha2 * migration[t] + log(offset[j]) + psi[j])
+      lambda[t,j] <- exp(alpha0 + alpha1 * region[j] + alpha2 * migration[t] + log(offset[j])) #+ psi[j])
       
     }#end t loop distance sampling
     
@@ -133,7 +133,7 @@ model.code <- nimbleCode({
       rho[t,j] ~ dgamma(r.N, r.N)
       
       #Linear predictor for Expected Number of Groups
-      lambda[t,j] <- exp(alpha0 + alpha1 * region[j] + alpha2 * migration[t] + log(offset[j]) + psi[j])
+      lambda[t,j] <- exp(alpha0 + alpha1 * region[j] + alpha2 * migration[t] + log(offset[j])) #+ psi[j])
       
     }#end t loop transect counts
     
@@ -158,7 +158,7 @@ attach(Data)
 
 constants <- list(nG = nG, v = v, B = B, mdpt = mdpt, nobs = sum(spec==8),
                   nstart = nstart, nend = nend, nsites = nsites,
-                  site = site[spec == 8], offset = offset, region = region,
+                  site = site[spec == 8], offset = offset, region = region[region == 1],
                   migration = migration)
 
 data <- list(y = y[,,8], dclass = dclass[spec == 8])
@@ -177,7 +177,7 @@ Nst <- y[,,8] + 1
 
 inits <- function(){list(gamma0 = runif(1, 2, 6), gamma1 = runif(1, -1, 1),
                          alpha0 = runif(1, 0, 4), alpha1 = runif(1, -1, 1), alpha2 = runif(1, -1, 1),
-                         r.N = runif(1, 1, 2), tau_p = runif(1, 0, 1),
+                         r.N = runif(1, 1, 2), #tau_p = runif(1, 0, 1),
                          N = Nst)}
 
 #--------------------#
