@@ -187,9 +187,9 @@ dclass[i] ~ dcat(fc[1:nG, site[i], spec[i]])
 
 attach(Data)
 
-constants <- list(nG = nG, v = v, B = B, mdpt = mdpt, nobs = nobs,
-                  nstart = nstart, nend = nend, nsites = nsites, nspec = nspec,
-                  site = site, spec = spec, offset = offset, region = region,
+constants <- list(nG = nG, v = v, B = B, mdpt = mdpt, nobs = sum(region == 1),
+                  nstart = nstart, nend = nend, nsites = sum(region == 1), nspec = nspec,
+                  site = site[region == 1], spec = spec, offset = offset, region = region[region == 1],
                   migration = migration)
 
 data <- list(y = y, dclass = dclass)
