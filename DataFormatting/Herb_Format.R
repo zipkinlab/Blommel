@@ -7,8 +7,7 @@
 #using R projects. It seets the path root to your project directory.
 #prevents you from having to change directories
 
-#setwd("C:/Users/cblom/Documents/ZQE_Lab/HerbData") #CB
-#delete - test
+
 
 #----------------#
 #-Load libraries-#
@@ -22,7 +21,6 @@ library(sf)
 #-Distance sampling data-#
 #------------------------#
 
-DS <- read.csv("~/ZQE_Lab/HerbData/Herbivore Utilization Complete.csv", header=TRUE) #CB
 DS <- read.csv("./RawData/Herbivore Utilization Complete.csv") #MTF
 
 #-------------#
@@ -68,7 +66,6 @@ DS <- DS[-which(is.na(DS$Count)|DS$Count<1),]
 #-------------------------------#
 
 #read in DS data
-DSshape <- st_read(dsn = "./Shapefiles", layer = "DS_10kmpersite") #CB
 DSshape <- st_read(dsn = "./RawData/Shapefiles", layer = "DS_10kmpersite") #MTF
 
 #read in data as an sf object
@@ -290,7 +287,7 @@ mdpt <- seq(v/2, B, v)
 #---------------------------------#
 
 #area of transects (m^2)
-area <- as.numeric(c(st_length(DSshape)*1000*2, st_length(TCshape)*200*2))
+area <- as.numeric(c(st_length(DSshape)*1000*2, st_length(TCshape)*100*2))
 
 #set baseline unit as 1 km^2
 offset <- area/1E6
