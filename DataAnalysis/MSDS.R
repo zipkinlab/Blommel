@@ -191,12 +191,13 @@ attach(Data)
 
 Data$dclass
 
-constants <- list(nG = nG, v = v, B = B, mdpt = mdpt, nobs = sum(spec[c(3,4,5,6,11)]),
+constants <- list(nG = nG, v = v, B = B, mdpt = mdpt, nobs = sum(spec %in% c(3,4,5,6,11)),
                   nstart = nstart, nend = nend, nsites = nsites, nspec = 5,
-                  site = site[spec[c(3,4,5,6,11)]], spec = spec[c(3,4,5,6,11)], offset = offset, region = region,
+                  site = site[spec %in% c(3,4,5,6,11)], spec = spec[spec %in% c(3,4,5,6,11)], offset = offset, region = region,
                   migration = migration)
 
-data <- list(y = y[,,c(3,4,5,6,11)], dclass = dclass[spec[c(3,4,5,6,11)]])
+data <- list(y = y[,,c(3,4,5,6,11)], dclass = dclass[spec %in% c(3,4,5,6,11)])
+
 
 #----------------#
 #-Initial values-#
