@@ -136,7 +136,7 @@ model.code <- nimbleCode({
       #Scale parameter
       sigma.new[j,s] <- exp(gamma0[s] + gamma1 * region[j])
       
-      for(k in 1:8){
+      for(k in 1:4){
         
         #Half normal detection function at midpt (length of rectangle)
         g[k,j,s] <- exp(-mdpt[k]*mdpt[k]/(2*sigma.new[j,s]*sigma.new[j,s]))
@@ -147,7 +147,7 @@ model.code <- nimbleCode({
       }#end k loop
       
       #Detection probability at each transect (sum of rectangles)
-      pdet[j,s] <- sum(f[1:8,j,s])
+      pdet[j,s] <- sum(f[1:4,j,s])
       
       for(t in nstart[j]:nend[j]){
         
