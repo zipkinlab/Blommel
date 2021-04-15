@@ -7,8 +7,6 @@
 #using R projects. It seets the path root to your project directory.
 #prevents you from having to change directories
 
-#setwd("C:/Users/cblom/Documents/ZQE_Lab/HerbData") #CB
-#delete - test
 
 #----------------#
 #-Load libraries-#
@@ -290,7 +288,7 @@ mdpt <- seq(v/2, B, v)
 #---------------------------------#
 
 #area of transects (m^2)
-area <- as.numeric(c(st_length(DSshape)*1000*2, st_length(TCshape)*200*2))
+area <- as.numeric(c(st_length(DSshape)*1000*2, st_length(TCshape)*100*2))
 
 #set baseline unit as 1 km^2
 offset <- area/1E6
