@@ -14,8 +14,8 @@ library(coda)
 #-Load Data-#
 #-----------#
 
-#load(file = "../DataFormatting/FormattedData.Rdata")
-load(file = "./DataFormatting/FormattedData.Rdata")
+load(file = "../DataFormatting/FormattedData.Rdata")
+#load(file = "./DataFormatting/FormattedData.Rdata")
 
 #--------------#
 #-NIMBLE model-#
@@ -193,8 +193,8 @@ Data$dclass
 
 constants <- list(nG = nG, v = v, B = B, mdpt = mdpt, nobs = sum(spec %in% c(3,4,5,6,11)),
                   nstart = nstart, nend = nend, nsites = nsites, nspec = 5,
-                  site = site[spec %in% c(3,4,5,6,11)], spec = spec[spec %in% c(3,4,5,6,11)], offset = offset, region = region,
-                  migration = migration)
+                  site = site[spec %in% c(3,4,5,6,11)], spec = spec[spec %in% c(3,4,5,6,11)], offset = offset, 
+                  region = region, migration = migration)
 
 data <- list(y = y[,,c(3,4,5,6,11)], dclass = dclass[spec %in% c(3,4,5,6,11)])
 
