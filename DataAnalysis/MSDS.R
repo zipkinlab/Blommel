@@ -13,7 +13,7 @@ library(coda)
 #-Load Data-#
 #-----------#
 
-load(file = "./DataFormatting/FormattedData.Rdata")
+load(file = "../DataFormatting/FormattedData.Rdata")
 
 #--------------#
 #-NIMBLE model-#
