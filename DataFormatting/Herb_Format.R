@@ -60,6 +60,7 @@ DS$Animal <- factor(DS$Animal,
                                "Wildebeest","Zebra", "Cattle",
                                "Shoat", "Lion", "Hyena", "BlackBackedJackal"))
 
+
 #Remove incomplete obs
 DS <- DS[-which(is.na(DS$Count)|DS$Count<1),]
 
@@ -68,7 +69,7 @@ DS <- DS[-which(is.na(DS$Count)|DS$Count<1),]
 #-------------------------------#
 
 #read in DS data
-DSshape <- st_read(dsn = "./Shapefiles", layer = "DS_10kmpersite") #CB
+DSshape <- st_read(dsn = "./ZQE_Lab/HerbData/Shapefiles", layer = "DS_10kmpersite") #CB
 DSshape <- st_read(dsn = "./RawData/Shapefiles", layer = "DS_10kmpersite") #MTF
 
 #read in data as an sf object
@@ -79,6 +80,9 @@ ds_matrix <- st_distance(DS, DSshape)
 
 #assign transect to each observation
 DS$site <- apply(ds_matrix, 1, which.min)
+#remove site 18
+DS <- DS[DS$site != 18] =
+
 
 #add corrected distances
 DS$dst <- apply(ds_matrix, 1, min)
