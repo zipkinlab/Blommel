@@ -188,10 +188,10 @@ dclass[i] ~ dcat(fc[1:nG, site[i], spec[i]])
 attach(Data)
 
 constants <- list(nG = nG, v = v, B = B, mdpt = mdpt, nobs = sum(site %in% which (region == 1)),
-                  nstart = nstart[[site %in% which(region ==1)]], nend = nend[site %in% which(region == 1)], 
-                  nsites = c(5,3), nspec = nspec, site = site[region == 1], 
+                  nstart = nstart[region ==1], nend = nend[region == 1], 
+                  nsites = c(5,3), nspec = nspec, site = site[site %in% which(region == 1)], 
                   spec = spec[site %in% which(region ==1)],
-                  offset = offset[site %in% which(region ==1)], region = region[region == 1],
+                  offset = offset[region == 1], region = region[region == 1],
                   migration = migration)
 
 data <- list(y = y[,region == 1,], dclass = dclass[site %in% which(region == 1)])
