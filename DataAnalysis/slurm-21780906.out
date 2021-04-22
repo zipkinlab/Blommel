@@ -1,0 +1,99 @@
+Fatal error: you must specify '--save', '--no-save' or '--vanilla'
+nimble version 0.9.1 is loaded.
+For more information on NIMBLE and a User Manual,
+please visit http://R-nimble.org.
+
+Attaching package: ‘nimble’
+
+The following object is masked from ‘package:stats’:
+
+    simulate
+
+defining model...
+building model...
+setting data and initial values...
+running calculate on model (any error reports that follow may simply reflect missing values in model variables) ... 
+checking model sizes and dimensions... This model is not fully initialized. This is not an error. To see which variables are not initialized, use model$initializeInfo(). For more information on model initialization, see help(modelInitialization).
+model building finished.
+===== Monitors =====
+thin = 1: mu_s, sig_s, gamma0, gamma1, mu_a0, sig_a0, alpha0, mu_a1, sig_a1, alpha1, mu_a2, sig_a2, alpha2, omega
+===== Samplers =====
+slice sampler (4605)
+  - N[]  (4605 elements)
+RW sampler (19)
+  - mu_s
+  - sig_s
+  - gamma1
+  - omega
+  - alpha0[]  (5 elements)
+  - alpha1[]  (5 elements)
+  - gamma0[]  (5 elements)
+posterior_predictive sampler (495)
+  - alpah2[]  (5 elements)
+  - y[]  (490 elements)
+conjugate sampler (6)
+  - mu_a0
+  - tau_a0
+  - mu_a1
+  - tau_a1
+  - mu_a2
+  - tau_a2
+binary sampler (4605)
+  - z[]  (4605 elements)
+Note: Assigning an RW_block sampler to nodes with very different scales can result in low MCMC efficiency.  If all nodes assigned to RW_block are not on a similar scale, we recommend providing an informed value for the "propCov" control list argument, or using the AFSS sampler instead.
+Note: Assigning an RW_block sampler to nodes with very different scales can result in low MCMC efficiency.  If all nodes assigned to RW_block are not on a similar scale, we recommend providing an informed value for the "propCov" control list argument, or using the AFSS sampler instead.
+Note: Assigning an RW_block sampler to nodes with very different scales can result in low MCMC efficiency.  If all nodes assigned to RW_block are not on a similar scale, we recommend providing an informed value for the "propCov" control list argument, or using the AFSS sampler instead.
+Warning messages:
+1: In MCMCconf$addSampler(target = c(nFun("alpha0", s), nFun("alpha1",  :
+  No sampler assigned to non-stochastic node: alpha0[1], alpha1[1], alpha2[1]
+2: In MCMCconf$addSampler(target = c(nFun("alpha0", s), nFun("alpha1",  :
+  No sampler assigned to non-stochastic node: alpha0[2], alpha1[2], alpha2[2]
+3: In MCMCconf$addSampler(target = c(nFun("alpha0", s), nFun("alpha1",  :
+  No sampler assigned to non-stochastic node: alpha0[3], alpha1[3], alpha2[3]
+4: In MCMCconf$addSampler(target = c(nFun("alpha0", s), nFun("alpha1",  :
+  No sampler assigned to non-stochastic node: alpha0[4], alpha1[4], alpha2[4]
+5: In MCMCconf$addSampler(target = c(nFun("alpha0", s), nFun("alpha1",  :
+  No sampler assigned to non-stochastic node: alpha0[5], alpha1[5], alpha2[5]
+Error in samplerFunction(model = model, mvSaved = mvSaved, target = target,  : 
+  Problem with target node in sampler_AF_slice
+Calls: buildMCMC -> <Anonymous> -> samplerFunction
+In addition: Warning message:
+In max(match(model$expandNodeNames(target), calcNodes)) :
+  no non-missing arguments to max; returning -Inf
+Execution halted
+squeue: error: Unrecognized option: 21780906
+Usage: squeue [-A account] [--clusters names] [-i seconds] [--job jobid]
+              [-n name] [-o format] [-p partitions] [--qos qos]
+              [--reservation reservation] [--sort fields] [--start]
+              [--step step_id] [-t states] [-u user_name] [--usage]
+              [-L licenses] [-w nodes] [--federation] [--local] [--sibling]
+	      [-ahjlrsv]
+JobId=21780906 JobName=run.sb
+   UserId=blommelc(855560) GroupId=plb(2022) MCS_label=N/A
+   Priority=60492 Nice=0 Account=general QOS=blommelc
+   JobState=RUNNING Reason=None Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:01:55 TimeLimit=10:00:00 TimeMin=N/A
+   SubmitTime=2021-04-21T13:48:31 EligibleTime=2021-04-21T13:48:31
+   AccrueTime=2021-04-21T13:48:31
+   StartTime=2021-04-21T13:52:14 EndTime=2021-04-21T23:52:14 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2021-04-21T13:52:14
+   Partition=general-long AllocNode:Sid=dev-intel14.i:18650
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=csp-006
+   BatchHost=csp-006
+   NumNodes=1 NumCPUs=1 NumTasks=1 CPUs/Task=1 ReqB:S:C:T=0:0:*:*
+   TRES=cpu=1,mem=20G,node=1,billing=3112
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=1 MinMemoryNode=20G MinTmpDiskNode=0
+   Features=[intel14|intel16|intel18|amr|nvf] DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/mnt/ufs18/home-025/blommelc/Blommel/DataAnalysis/run.sb
+   WorkDir=/mnt/ufs18/home-025/blommelc/Blommel/DataAnalysis
+   Comment=stdout=/mnt/ufs18/home-025/blommelc/Blommel/DataAnalysis/slurm-21780906.out 
+   StdErr=/mnt/ufs18/home-025/blommelc/Blommel/DataAnalysis/slurm-21780906.out
+   StdIn=/dev/null
+   StdOut=/mnt/ufs18/home-025/blommelc/Blommel/DataAnalysis/slurm-21780906.out
+   Power=
+   NtasksPerTRES:0
+

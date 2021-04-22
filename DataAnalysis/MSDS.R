@@ -209,9 +209,9 @@ MCMC <- buildMCMC(MCMCconf)
 model.comp <- compileNimble(model, MCMC)
 
 nc <- 1
-ni <- 50000
+ni <- 100000
 nb <- 40000
-nt <- 5
+nt <- 10
 
 out <- runMCMC(model.comp$MCMC, niter = ni, nburnin = nb, nchains = nc, thin = nt, samplesAsCodaMCMC = TRUE)
 
