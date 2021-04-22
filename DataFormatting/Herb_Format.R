@@ -81,7 +81,7 @@ ds_matrix <- st_distance(DS, DSshape)
 #assign transect to each observation
 DS$site <- apply(ds_matrix, 1, which.min)
 #remove site 18
-DS <- DS[DS$site != 18] =
+DS <- DS %>% filter(site != 18)
 
 
 #add corrected distances
