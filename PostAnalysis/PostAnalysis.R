@@ -4,6 +4,7 @@
 
 library(coda)
 library(tidyverse)
+library(MCMCvis)
 
 #-----------#
 #-Load data-#
@@ -31,6 +32,13 @@ out <- mcmc.list(mget(paste0(pattern, 1:nc)))
 params <- attr(out[[1]], "dimnames")[[2]]
 
 Rhat <- gelman.diag(out[c(1:nc)][,params])
+
+#if calcualting Rhat list fails
+params
+traceplot(out[c(1:nc)][,params[2]])
+MCMCsummary(out)
+
+
 if(all(Rhat[[1]][,1] < 1.1)){
   print("Converged")
 }else{
